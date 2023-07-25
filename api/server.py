@@ -2,7 +2,7 @@ import uvicorn
 from fastapi import FastAPI, Response, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
-from models.network import Network
+from models.entities import Network
 
 app = FastAPI()
 

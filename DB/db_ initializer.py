@@ -1,12 +1,12 @@
 import mysql.connector
-from mysql.connector import Error, errorcode, pooling
+from mysql.connectpipor import Error, errorcode, pooling
 
 try:
     connection_pool = pooling.MySQLConnectionPool(pool_name="pynative_pool",
                                                   pool_size=1,
                                                   pool_reset_session=True,
                                                   host='localhost',
-                                                  database='python_db',
+                                                  database='IT4All',
                                                   user='root',
                                                   password='root')
     connection_object = connection_pool.get_connection()
