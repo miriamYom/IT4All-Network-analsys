@@ -2,7 +2,6 @@ import pymysql
 
 
 def connect_db(query):
-
     dbServerName = "sql6.freesqldatabase.com"
 
     dbUser = "sql6635076"
@@ -18,5 +17,5 @@ def connect_db(query):
     connectionObject = pymysql.connect(host=dbServerName, user=dbUser, password=dbPassword,
 
                                        db=dbName, charset=charSet, cursorclass=cusrorType)
-    #todo: try
+    # todo: try
     return connectionObject

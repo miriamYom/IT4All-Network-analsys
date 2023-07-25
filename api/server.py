@@ -38,6 +38,7 @@ async def upload_pcap_file(pcap_file: UploadFile = File(...), network: Json = Bo
 async def view_network(network_id: int):
     # TODO: users authorization
     # TODO: get devices and connections
+
     pass
 
 
