@@ -1,7 +1,7 @@
 import pymysql
 
 
-def connect_db(query):
+def connect_db():
 
     dbServerName = "sql6.freesqldatabase.com"
 
