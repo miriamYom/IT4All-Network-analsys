@@ -1,12 +1,13 @@
 from typing import Dict
 
 import uvicorn
-from fastapi import FastAPI, Response, Depends, File, UploadFile, Form, Body
+from fastapi import FastAPI, Response, Depends, File, UploadFile, Form, Body,HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import Json
 
 from models.entities import Network
 from DB.DB_manager import fake_db
+from DB.crud import add_network,ClientNotFoundError
 from services.file_handler import open_pcap_file
 
 app = FastAPI()
@@ -19,13 +20,16 @@ async def root():
 
 @app.post("/upload_pcap_file")
 async def upload_pcap_file(pcap_file: UploadFile = File(...), network: Json = Body(...)):
-    print(network)
-    print(type(network))
+    # print(network)
+    # print(type(network))
 
     # TODO: users authorization
     # TODO: add network to DB
     network_model = Network(**network)
-    fake_db[network_model.id] = network_model
+    try:
+        add_network(network_model)
+    except:
+        raise HTTPException(status_code=404,detail="bgbj")
     # TODO: read file
     await open_pcap_file(pcap_file)
     # TODO: analyze file

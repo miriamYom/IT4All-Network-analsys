@@ -1,4 +1,4 @@
-from db_initializer import connect_db
+from DB.db_initializer import connect_db
 from models.entities import Network
 
 CONNECTION = None
@@ -26,12 +26,12 @@ def is_exist_client(client_id):
             raise ClientNotFoundError("Client with the specified ID not found.")
 
 
-def add_user(user: User):
-    connection = get_connection()
-    with connection.cursor() as cursor:
-        query = "INSERT INTO User (FirstName, LastName, HashedPassword, RoleID, Email) VALUES (%(first_name)s, %(last_name)s, %(hashe_password)s, %(role_id)s, %(email)s)"
-        cursor.execute(query, (user,))
-        result = cursor.fetchone()
+# def add_user(user: User):
+#     connection = get_connection()
+#     with connection.cursor() as cursor:
+#         query = "INSERT INTO User (FirstName, LastName, HashedPassword, RoleID, Email) VALUES (%(first_name)s, %(last_name)s, %(hashe_password)s, %(role_id)s, %(email)s)"
+#         cursor.execute(query, (user,))
+#         result = cursor.fetchone()
 
 
 def add_network(network: Network):
@@ -52,4 +52,4 @@ def get_user(email):
 
 
 # is_exist_client(11)
-get_user()
+# get_user()
