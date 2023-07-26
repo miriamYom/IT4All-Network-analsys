@@ -1,5 +1,6 @@
 from typing import Dict
 
+import pymysql
 import uvicorn
 from fastapi import FastAPI, Response, Depends, File, UploadFile, Form, Body,HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
@@ -7,7 +8,7 @@ from pydantic import Json
 
 from models.entities import Network
 from DB.DB_manager import fake_db
-from DB.crud import add_network,ClientNotFoundError
+from DB.crud import add_network, ClientNotFoundError, add_network2
 from services.file_handler import open_pcap_file
 
 app = FastAPI()
@@ -27,22 +28,22 @@ async def upload_pcap_file(pcap_file: UploadFile = File(...), network: Json = Bo
     # TODO: add network to DB
     network_model = Network(**network)
     try:
-        add_network(network_model)
-    except:
-        raise HTTPException(status_code=404,detail="bgbj")
+        id=add_network2(network_model)
+    except pymysql.Error as e:
+        raise e
+        # raise HTTPException(status_code=404,detail="bgbj")
     # TODO: read file
     await open_pcap_file(pcap_file)
     # TODO: analyze file
 
     # TODO: return network id
-    return network_model.id
+    return f"network created with id:{id}"
 
 
 @app.get("/view_network/{network_id}")
 async def view_network(network_id: int):
     # TODO: users authorization
     # TODO: get devices and connections
-
     pass
 
 

@@ -1,3 +1,5 @@
+import pymysql
+
 from DB.db_initializer import connect_db
 from models.entities import Network
 
@@ -42,6 +44,22 @@ def add_network(network: Network):
         result = cursor.fetchone()
 
 
+def add_network2(network: Network):
+    connection = get_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = "INSERT INTO Network (ClientID , LocationName , DateTaken ) VALUES (%s, %s, %s)"
+            cursor.execute(sql, (network.client_id, network.location_name, network.date_taken))
+            # Get the id of the newly inserted network
+            inserted_id = cursor.lastrowid
+        connection.commit()
+        print("Network added successfully.")
+        return inserted_id
+    except pymysql.Error as e:
+        print(e)
+        return e
+
+
 def get_user(email):
     connection = get_connection()
     with connection.cursor() as cursor:
@@ -49,7 +67,6 @@ def get_user(email):
         cursor.execute(query, (email,))
         password = cursor.fetchone()
         return password
-
 
 # is_exist_client(11)
 # get_user()

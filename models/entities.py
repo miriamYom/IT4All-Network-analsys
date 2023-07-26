@@ -21,6 +21,5 @@ class Network(BaseModel):
                 raise ValueError("Invalid date format. Date should be in the format 'dd/mm/yyyy'.")
 
 
-# network = Network(client_id=1, location_name="new york", date_taken="02/02/1950")
 
 
