@@ -1,10 +1,14 @@
 from typing import Dict
 
 import uvicorn
+from fastapi import FastAPI, Response, Depends, HTTPException, status, encoders
 from fastapi import FastAPI, Response, Depends, File, UploadFile, Form, Body
 from fastapi.security import OAuth2PasswordRequestForm
+from datetime import datetime, timedelta
 from pydantic import Json
 
+from auth.auth_handler import create_access_token, authenticate_user, ACCESS_TOKEN_EXPIRE_MINUTES
+from auth.auth_models import Token
 from models.entities import Network
 from DB.DB_manager import fake_db
 from services.file_handler import open_pcap_file
@@ -48,10 +52,25 @@ async def get_filtered_devices(network_id: int, mac_address: str, vendor: str):
     pass
 
 
-@app.post("/login")
-async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends()):
-    # TODO: implement login
-    pass
+@app.post("/login", response_model=Token)
+async def login_for_access_token(response: Response, form_data: OAuth2PasswordRequestForm = Depends()):
+    user = authenticate_user(form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    response.set_cookie(
+        key="Authorization", value=f"Bearer {encoders.jsonable_encoder(access_token)}",
+        httponly=True
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
 
 
 if __name__ == "__main__":

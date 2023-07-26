@@ -1,2 +1,5 @@
-pip install "python-jose[cryptography]"
-pip install fastapi uvicorn[standard]
+PyMySQL~=1.1.0
+uvicorn~=0.23.1
+fastapi~=0.100.0
+pydantic~=2.0.3
+passlib~=1.7.4
