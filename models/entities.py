@@ -39,9 +39,18 @@ class Device(BaseModel):
 class User(BaseModel):
     first_name: Union[str, None]
     last_name: Union[str, None]
-    hashed_password: str
-    role_ID: int = 1
+
     email: str
+
+
+class LoginUser(User):
+    password: str
+    role_name: int
+
+
+class UserInDB(User):
+    hashed_password: str
+    role_id: Union[int, None] = None
 
     @field_validator('email')
     def validate_email(cls, value):
@@ -54,5 +63,3 @@ class User(BaseModel):
         # Regular expression for email validation
         email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         return bool(re.match(email_pattern, email))
-
-
