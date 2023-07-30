@@ -36,21 +36,18 @@ class Device(BaseModel):
     Info: Union[str, None] = None
 
 
+class Connection(BaseModel):
+    Source_id: int
+    Dest_id: int
+    Protocol_id: int
+    Length: int
+    Time: str
+
+
 class User(BaseModel):
     first_name: Union[str, None]
     last_name: Union[str, None]
-
     email: str
-
-
-class LoginUser(User):
-    password: str
-    role_name: int
-
-
-class UserInDB(User):
-    hashed_password: str
-    role_id: Union[int, None] = None
 
     @field_validator('email')
     def validate_email(cls, value):
@@ -63,3 +60,14 @@ class UserInDB(User):
         # Regular expression for email validation
         email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         return bool(re.match(email_pattern, email))
+
+class LoginUser(User):
+    password: str
+    role_name: int
+
+
+class UserInDB(User):
+    hashed_password: str
+    role_id: Union[int, None] = None
+
+

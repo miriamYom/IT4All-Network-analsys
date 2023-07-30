@@ -3,8 +3,7 @@ from typing import Dict
 import pymysql
 import aiomysql
 import uvicorn
-from fastapi import FastAPI, Response, Depends, HTTPException, status, encoders
-from fastapi import FastAPI, Response, Depends, File, UploadFile, Form, Body
+from fastapi import FastAPI, Response, Depends, File, UploadFile, Form, Body,HTTPException, status, encoders
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
 from pydantic import Json

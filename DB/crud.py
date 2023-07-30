@@ -1,7 +1,7 @@
 from typing import Union
 
 from DB.db_initializer import connect_db
-from models.entities import Network, Device, User
+from models.entities import Network, Device, UserInDB
 
 CONNECTION = None
 
@@ -27,11 +27,12 @@ async def is_exist_client(client_id):
             raise ClientNotFoundError("Client with the specified ID not found.")
 
 
-async def add_user(user: User):
+async def add_user(user: UserInDB):
     connection = await get_connection()
     with connection.cursor() as cursor:
         query_to_check_id = "select id from Role where name = %s"
-        cursor.execute(query_to_check_id,)
+
+        cursor.execute(query_to_check_id,())
         query = "INSERT INTO User " \
                 "(FirstName,LastName, HashedPassword, RoleID, Email)" \
                 " VALUES" \
@@ -40,7 +41,7 @@ async def add_user(user: User):
         result = cursor.fetchone()
 
 
-def add_network(network: Network):
+async def add_network(network: Network):
     connection = await get_connection()
     with connection.cursor() as cursor:
         query = "Insert Into Network (ClientId,LocationName,DateTaken) " \
@@ -55,8 +56,8 @@ def add_network(network: Network):
         return last_identity_id
 
 
-def get_network(client_id):
-    connection = get_connection()
+async def get_network(client_id):
+    connection = await get_connection()
     with connection.cursor() as cursor:
         query = "SELECT * FROM Network Where ClientId= %s"
         cursor.execute(query, (client_id,))
@@ -64,8 +65,8 @@ def get_network(client_id):
         return networks
 
 
-def get_user(email):
-    connection = get_connection()
+async def get_user(email):
+    connection =await get_connection()
     with connection.cursor() as cursor:
         query = "SELECT Password FROM User WHERE email = %s"
         cursor.execute(query, (email,))
@@ -73,11 +74,12 @@ def get_user(email):
         return password
 
 
-# def add_device(device: Device):
-#     connection = get_connection()
-#     with connection.cursor() as cursor:
-#         query = "insert into Device (network_id,ip,mac,name,vendor) Values (%s,%s,%s,%s,%s)"
-#         cursor.execute(query, (,))
+async def add_device(device: Device):
+    connection = await get_connection()
+    with connection.cursor() as cursor:
+        query = "insert into Device (network_id,ip,mac,name,vendor) Values (%s,%s,%s,%s,%s)"
+        cursor.execute(query, (device.network_id, device.ip, device.mac, device.types_namespace, device.vendor))
+        connection.commit()
 
 
 async def get_networks_devices(network_id: int, mac_address: Union[str, None], vendor: Union[str, None]):
@@ -96,16 +98,8 @@ async def get_networks_devices(network_id: int, mac_address: Union[str, None], v
     return devices
 
 
-async def add_device(device: Device):
-    connection = await get_connection()
-    with connection.cursor() as cursor:
-        query = "insert into Device (network_id,ip,mac,name,vendor) Values (%s,%s,%s,%s,%s)"
-        await cursor.execute(query, (device.network_id, device.ip, device.mac, device.types_namespace, device.vendor))
-        connection.commit()
-
-
 async def add_connection(connection: Connection):
-    connection_to_db = get_connection()
+    connection_to_db = await get_connection()
     with connection_to_db.cursor() as cursor:
         query = "insert into Connection (network_id,ip,mac,name,vendor) Values (%s,%s,%s,%s,%s)"
         cursor.execute(query, ())
