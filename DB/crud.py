@@ -10,10 +10,10 @@ from models.entities import Network, Device
 CONNECTION = None
 
 
-def get_connection():
+async def get_connection():
     global CONNECTION
     if not CONNECTION:
-        CONNECTION = connect_db()
+        CONNECTION = await connect_db()
     return CONNECTION
 
 
@@ -90,7 +90,7 @@ def get_user(email):
 # add_network(network)
 
 async def get_networks_devices(network_id: int, mac_address: Union[str, None], vendor: Union[str, None]):
-    connection = get_connection()
+    connection = await get_connection()
     async with connection.cursor() as cursor:
         query = "SELECT * FROM Device WHERE NetworkID = %s"
         params = [network_id]
