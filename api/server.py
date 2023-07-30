@@ -55,7 +55,6 @@ async def view_network(network_id: int):
 @app.get("/devices/{network_id}")
 async def get_filtered_devices(network_id: int, mac_address: str = None, vendor: str = None):
     # TODO: users authorization
-    # TODO: get networks devices by filter
     try:
         devices = await get_networks_devices(network_id, mac_address, vendor)
         if not devices:
