@@ -3,8 +3,7 @@ from typing import Dict
 import pymysql
 import aiomysql
 import uvicorn
-from fastapi import FastAPI, Response, Depends, HTTPException, status, encoders
-from fastapi import FastAPI, Response, Depends, File, UploadFile, Form, Body
+from fastapi import FastAPI, Response, Depends, File, UploadFile, Form, Body,HTTPException, status, encoders
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
 from pydantic import Json
@@ -25,7 +24,7 @@ async def root():
 
 
 @app.post("/upload_pcap_file")
-async def upload_pcap_file(pcap_file: UploadFile = File(...), network: Json = Body(...)):
+async def upload_pcap_file(pcap_file: UploadFile = File(...), network: Json = Body(...),current_user: User = Depends(get_current_active_user)):
     print(network)
     print(type(network))
 
@@ -46,14 +45,14 @@ async def upload_pcap_file(pcap_file: UploadFile = File(...), network: Json = Bo
 
 
 @app.get("/view_network/{network_id}")
-async def view_network(network_id: int):
+async def view_network(network_id: int,current_user: User = Depends(get_current_active_user)):
     # TODO: users authorization
     # TODO: get devices and connections
     pass
 
 
 @app.get("/devices/{network_id}")
-async def get_filtered_devices(network_id: int, mac_address: str = None, vendor: str = None):
+async def get_filtered_devices(network_id: int, mac_address: str = None, vendor: str = None,current_user: User = Depends(get_current_active_user)):
     # TODO: users authorization
     try:
         devices = await get_networks_devices(network_id, mac_address, vendor)

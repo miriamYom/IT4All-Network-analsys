@@ -28,7 +28,7 @@ class Network(BaseModel):
 
 class Device(BaseModel):
     id: Union[int, None] = None
-    network_id: int
+    network_id: Union[int, None] = None
     ip: str
     Mac: str
     Name: Union[str, None] = "Device"
@@ -36,11 +36,17 @@ class Device(BaseModel):
     Info: Union[str, None] = None
 
 
+class Connection(BaseModel):
+    Source_id: int
+    Dest_id: int
+    Protocol_id: int
+    Length: int
+    Time: str
+
+
 class User(BaseModel):
     first_name: Union[str, None]
     last_name: Union[str, None]
-    hashed_password: str
-    role_ID: int = 1
     email: str
 
     @field_validator('email')
@@ -54,5 +60,14 @@ class User(BaseModel):
         # Regular expression for email validation
         email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         return bool(re.match(email_pattern, email))
+
+class LoginUser(User):
+    password: str
+    role_name: int
+
+
+class UserInDB(User):
+    hashed_password: str
+    role_id: Union[int, None] = None
 
 

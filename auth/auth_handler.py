@@ -12,6 +12,7 @@ from passlib.context import CryptContext
 
 from DB.crud import get_user
 from auth.auth_models import TokenData
+from models.entities import UserInDB
 
 SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
 ALGORITHM = "HS256"
@@ -47,8 +48,8 @@ class OAuth2PasswordBearerWithCookie(OAuth2):
         return param
 
 
-def authenticate_user(email: str, password: str):
-    user: UserInDB = get_user(email)
+async def authenticate_user(email: str, password: str):
+    user: UserInDB = await get_user(email)
     if not user:
         return None
     if not verify_password(password, user.hashed_password):
@@ -91,10 +92,10 @@ async def get_current_user(token: str = Depends(oauth2_cookie_scheme)):
     return user
 
 
-# async def get_current_active_user(current_user: User = Depends(get_current_user)):
-#     if current_user and current_user.disabled:
-#         raise HTTPException(status_code=400, detail="Inactive user")
-#     return current_user
+async def get_current_active_user(current_user: User = Depends(get_current_user)):
+    if current_user and current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
