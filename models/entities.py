@@ -28,7 +28,7 @@ class Network(BaseModel):
 
 class Device(BaseModel):
     id: Union[int, None] = None
-    network_id: int
+    network_id: Union[int, None] = None
     ip: str
     Mac: str
     Name: Union[str, None] = "Device"

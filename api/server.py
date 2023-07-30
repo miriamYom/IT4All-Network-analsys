@@ -24,7 +24,7 @@ async def root():
 
 
 @app.post("/upload_pcap_file")
-async def upload_pcap_file(pcap_file: UploadFile = File(...), network: Json = Body(...)):
+async def upload_pcap_file(pcap_file: UploadFile = File(...), network: Json = Body(...),current_user: User = Depends(get_current_active_user)):
     print(network)
     print(type(network))
 
@@ -45,14 +45,14 @@ async def upload_pcap_file(pcap_file: UploadFile = File(...), network: Json = Bo
 
 
 @app.get("/view_network/{network_id}")
-async def view_network(network_id: int):
+async def view_network(network_id: int,current_user: User = Depends(get_current_active_user)):
     # TODO: users authorization
     # TODO: get devices and connections
     pass
 
 
 @app.get("/devices/{network_id}")
-async def get_filtered_devices(network_id: int, mac_address: str = None, vendor: str = None):
+async def get_filtered_devices(network_id: int, mac_address: str = None, vendor: str = None,current_user: User = Depends(get_current_active_user)):
     # TODO: users authorization
     # TODO: get networks devices by filter
     try:

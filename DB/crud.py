@@ -1,7 +1,7 @@
 from typing import Union
 
 from DB.db_initializer import connect_db
-from models.entities import Network, Device, UserInDB
+from models.entities import Network, Device, UserInDB,Connection
 
 CONNECTION = None
 
@@ -43,17 +43,18 @@ async def add_user(user: UserInDB):
 
 async def add_network(network: Network):
     connection = await get_connection()
-    with connection.cursor() as cursor:
-        query = "Insert Into Network (ClientId,LocationName,DateTaken) " \
-                "VALUES (%s,%s,%s)"
-        cursor.execute(query, (
+    async with connection.cursor() as cursor:
+        query = "INSERT INTO Network (ClientId, LocationName, DateTaken) " \
+                "VALUES (%s, %s, %s)"
+        await cursor.execute(query, (
             network.client_id,
             network.location_name,
             network.date_taken,
         ))
         last_identity_id = cursor.lastrowid
-        connection.commit()
-        return last_identity_id
+        await connection.commit()
+
+    return last_identity_id
 
 
 async def get_network(client_id):
@@ -74,11 +75,12 @@ async def get_user(email):
         return password
 
 
-async def add_device(device: Device):
+async def add_devices(lst_of_devices):
     connection = await get_connection()
     with connection.cursor() as cursor:
-        query = "insert into Device (network_id,ip,mac,name,vendor) Values (%s,%s,%s,%s,%s)"
-        cursor.execute(query, (device.network_id, device.ip, device.mac, device.types_namespace, device.vendor))
+        query = "INSERT INTO Device(NetworkID,IP,Mac, Name,Vendor,Info) " \
+                "Values (%s,%s,%s,%s,%s) "
+        cursor.execute(query, lst_of_devices)
         connection.commit()
 
 
