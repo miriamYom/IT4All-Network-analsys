@@ -28,18 +28,27 @@ async def is_exist_client(client_id):
             raise ClientNotFoundError("Client with the specified ID not found.")
 
 
-# async def add_user(user: UserInDB):
-#     connection = await get_connection()
-#     with connection.cursor() as cursor:
-#         query_to_check_id = "select id from Role where name = %s"
-#
-#         cursor.execute(query_to_check_id,())
-#         query = "INSERT INTO User " \
-#                 "(FirstName,LastName, HashedPassword, RoleID, Email)" \
-#                 " VALUES" \
-#                 "(%s, %s, %s, %s, %s)"
-#         cursor.execute(query, (user.first_name, user.last_name, user.hashed_password, role_id))
-#         result = cursor.fetchone()
+async def get_role_id(role_name: str):
+    connection = await get_connection()
+    async with connection.cursor() as cursor:
+        # Get the RoleID based on the role name
+        query_to_check_role_id = "SELECT ID FROM Role WHERE Name = %s"
+        await cursor.execute(query_to_check_role_id, (role_name,))
+        role_id = await cursor.fetchone()
+        # the default is technician
+        if not role_id:
+            role_id = 1
+    return role_id
+
+
+async def add_user(user: UserInDB):
+    connection = await get_connection()
+    async with connection.cursor() as cursor:
+        role_id = await get_role_id(user.RoleName)
+        query = "INSERT INTO User (FirstName, LastName, HashedPassword, RoleID, Email) VALUES (%s, %s, %s, %s, %s)"
+        await cursor.execute(query, (user.FirstName, user.LastName, user.HashedPassword, role_id, user.Email))
+        await connection.commit()
+        return cursor.lastrowid
 
 
 async def add_network(network: Network):
@@ -69,12 +78,11 @@ async def get_network(client_id):
 
 async def get_user(email):
     connection =await get_connection()
-    with connection.cursor() as cursor:
-        query = "SELECT Password FROM User WHERE email = %s"
-        cursor.execute(query, (email,))
-        password = cursor.fetchone()
-        return password
-
+    async with connection.cursor() as cursor:
+        query = "SELECT * FROM User WHERE email = %s"
+        await cursor.execute(query, (email,))
+        user = await cursor.fetchone()
+    return UserInDB(**user)
 
 # async def add_devices(lst_of_devices):
 #     connection = await get_connection()
@@ -94,8 +102,7 @@ async def get_user(email):
 #         res = await cursor.fetchall()
 #         return res
 
-
-async def add_devices(lst_of_devices):  # doesnt work!!!
+async def add_devices(lst_of_devices):
     connection = await get_connection()
     async with connection.cursor() as cursor:
         query = (
