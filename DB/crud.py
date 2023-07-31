@@ -18,6 +18,7 @@ class ClientNotFoundError(Exception):
     pass
 
 
+
 async def is_exist_client(client_id):
     connection = await get_connection()
     with connection.cursor() as cursor:
@@ -51,29 +52,7 @@ async def add_user(user: UserInDB):
         return cursor.lastrowid
 
 
-async def add_network(network: Network):
-    connection = await get_connection()
-    async with connection.cursor() as cursor:
-        query = "INSERT INTO Network (ClientId, LocationName, DateTaken) " \
-                "VALUES (%s, %s, %s)"
-        await cursor.execute(query, (
-            network.client_id,
-            network.location_name,
-            network.date_taken,
-        ))
-        last_identity_id = cursor.lastrowid
-        await connection.commit()
 
-    return last_identity_id
-
-
-async def get_network(client_id):
-    connection = await get_connection()
-    with connection.cursor() as cursor:
-        query = "SELECT * FROM Network Where ClientId= %s"
-        cursor.execute(query, (client_id,))
-        networks = cursor.fetchall()
-        return networks
 
 
 async def get_user(email):
@@ -124,6 +103,29 @@ async def add_devices(lst_of_devices):
         res = await cursor.fetchall()
         return res
 
+async def add_network(network: Network):
+    connection = await get_connection()
+    async with connection.cursor() as cursor:
+        query = "INSERT INTO Network (ClientId, LocationName, DateTaken) " \
+                "VALUES (%s, %s, %s)"
+        await cursor.execute(query, (
+            network.client_id,
+            network.location_name,
+            network.date_taken,
+        ))
+        await connection.commit()
+        last_identity_id = cursor.lastrowid
+
+    return last_identity_id
+
+
+async def get_network(client_id):
+    connection = await get_connection()
+    with connection.cursor() as cursor:
+        query = "SELECT * FROM Network Where ClientId= %s"
+        cursor.execute(query, (client_id,))
+        networks = cursor.fetchall()
+        return networks
 
 async def get_networks_devices(network_id: int, mac_address: Union[str, None], vendor: Union[str, None]):
     connection = await get_connection()

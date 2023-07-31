@@ -1,5 +1,9 @@
 import aiomysql
 import pymysql
+
+
+
+
 async def connect_db():
     db_server_name = "sql6.freesqldatabase.com"
     db_user = "sql6635076"
