@@ -5,7 +5,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
 from pydantic import Json
 
-from auth.auth_handler import create_access_token, authenticate_user, ACCESS_TOKEN_EXPIRE_MINUTES, get_password_hash, get_current_user
+from auth.auth_handler import create_access_token, authenticate_user, ACCESS_TOKEN_EXPIRE_MINUTES, get_current_user, \
+    get_password_hash
 from auth.auth_models import Token
 from models.entities import Network, User, UserInDB
 from DB.crud import add_network, get_networks_devices, add_user
@@ -20,7 +21,7 @@ async def root():
 
 
 @app.post("/upload_pcap_file")
-async def upload_pcap_file(pcap_file: UploadFile = File(...), network: Json = Body(...),current_user: User = Depends(get_current_active_user)):
+async def upload_pcap_file(pcap_file: UploadFile = File(...), network: Json = Body(...),current_user: User = Depends(get_current_user)):
     print(network)
     print(type(network))
 
@@ -92,6 +93,10 @@ async def login_for_access_token(response: Response, form_data: OAuth2PasswordRe
         httponly=True
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+@app.get("/users/me", response_model=User)
+async def read_users_me(current_user: User = Depends(get_current_user)):
+    return current_user
 
 
 

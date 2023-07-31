@@ -45,11 +45,11 @@ class Connection(BaseModel):
 
 
 class User(BaseModel):
-    first_name: Union[str, None]
-    last_name: Union[str, None]
-    email: str
+    FirstName: Union[str, None]
+    LastName: Union[str, None]
+    Email: str
 
-    @field_validator('email')
+    @field_validator('Email')
     def validate_email(cls, value):
         if not cls.is_valid_email(value):
             raise ValueError("Invalid email address")
@@ -61,13 +61,10 @@ class User(BaseModel):
         email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         return bool(re.match(email_pattern, email))
 
-class LoginUser(User):
-    password: str
-    role_name: int
+
 
 
 class UserInDB(User):
-    hashed_password: str
-    role_id: Union[int, None] = None
+    HashedPassword: str
 
 
