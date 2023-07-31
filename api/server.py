@@ -1,6 +1,6 @@
 import pymysql
 import uvicorn
-from fastapi import FastAPI, Response, Depends, File, UploadFile, Form, Body, HTTPException, status, encoders
+from fastapi import FastAPI, Response, Depends, File, UploadFile, Form, Body,HTTPException, status, encoders
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
 from pydantic import Json
@@ -36,7 +36,7 @@ async def upload_pcap_file(pcap_file: UploadFile = File(...), network: Json = Bo
         raise e
         # raise HTTPException(status_code=404,detail="bgbj")
     # TODO: read file
-    await open_pcap_file(pcap_file)
+
     # TODO: analyze file
 
     # TODO: return network id
@@ -54,6 +54,7 @@ async def view_network(network_id: int, current_user: User = Depends(get_current
 async def get_filtered_devices(network_id: int, mac_address: str = None, vendor: str = None,
                                current_user: User = Depends(get_current_user)):
     # TODO: users authorization
+    # TODO: get networks devices by filter
     try:
         devices = await get_networks_devices(network_id, mac_address, vendor)
         if not devices:
@@ -93,10 +94,6 @@ async def login_for_access_token(response: Response, form_data: OAuth2PasswordRe
         httponly=True
     )
     return {"access_token": access_token, "token_type": "bearer"}
-
-@app.get("/users/me", response_model=User)
-async def read_users_me(current_user: User = Depends(get_current_user)):
-    return current_user
 
 
 

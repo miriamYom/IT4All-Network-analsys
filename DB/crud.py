@@ -1,3 +1,4 @@
+import asyncio
 from typing import Union
 
 from DB.db_initializer import connect_db
@@ -76,13 +77,30 @@ async def get_network(client_id):
 
 
 async def get_user(email):
-    connection = await get_connection()
+    connection =await get_connection()
     async with connection.cursor() as cursor:
         query = "SELECT * FROM User WHERE email = %s"
         await cursor.execute(query, (email,))
         user = await cursor.fetchone()
     return UserInDB(**user)
 
+# async def add_devices(lst_of_devices):
+#     connection = await get_connection()
+#     async with connection.cursor() as cursor:
+#         query = "CREATE TABLE #outputResult (ID int ,Mac varchar(100)) " \
+#                 "INSERT INTO Device(NetworkID,IP,Mac, Name,Vendor,Info)" \
+#                 "OUTPUT inserted.ID,inserted.Mac" \
+#                 "INTO #outputResult" \
+#                 "SELECT dt.NetworkID,dt.IP,dt.Mac, dt.Name,dt.Vendor,dt.Info" \
+#                 "FROM Device_temp dt LEFT JOIN Device d" \
+#                 "on dt.mac=d.mac" \
+#                 "where d.id is null" \
+#                 "SELECT *FROM #outputResult"
+#         cursor.execute(query, lst_of_devices)
+#
+#         connection.commit()
+#         res = await cursor.fetchall()
+#         return res
 
 async def add_devices(lst_of_devices):
     connection = await get_connection()
@@ -101,6 +119,7 @@ async def add_devices(lst_of_devices):
             '''
         )
         cursor.execute(query, lst_of_devices)
+
         connection.commit()
         res = await cursor.fetchall()
         return res
