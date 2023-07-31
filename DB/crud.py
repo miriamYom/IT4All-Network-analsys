@@ -177,6 +177,29 @@ async def add_one_device(device: Device):
         await connection.commit()
         return last_identity_id
 
+async def add_connections(connections):
+    query = "INSERT INTO Device (NetworkID, IP, Mac, Name, Vendor, Info) " \
+            "VALUES (%s, %s, %s, %s, %s, %s)"
+    try:
+        connection = await get_connection()
+        async with connection.cursor() as cursor:
+            _id = cursor.executemany(query, connections)
+            print("last_id", _id)
+        connection.commit()
+        print("Multiple rows inserted successfully.")
+        return True
+    except Exception as e:
+        connection.rollback()
+        print(f"Error: {e}")
+        return False
+
+
+
+
+
+
+
+
 
 # network_data = {
 #     "client_id": 11,
