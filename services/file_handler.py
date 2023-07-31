@@ -30,24 +30,24 @@ async def devices_identification(packets, network_id):
     existing_devices = dict()
 
     for packet in packets:
+        # extract mac address first.....
+        # router- ip none
         device = Device
         device.network_id = network_id
         device.Name = 'device'
         device.Info = '---'
+        device.ip = str(packet[IP].src)
 
-        if IP in packet:
-            device.ip = str(packet[IP].src)
+        mac = str(packet["Ether"].src)
+        device.Mac = mac
+        device.Vendor = 'vendor mvp'  # TODO: order vendor...
+        # device['Vendor'] = MacLookup().lookup(mac)
 
-        if "Ether" in packet:
-            mac = str(packet["Ether"].src)
-            device.Mac = mac
-            device.Vendor = 'vendor mvp'  # TODO: order vendor...
-            # device['Vendor'] = MacLookup().lookup(mac)
-
-            if mac not in existing_devices.keys():
-                id = await add_one_device(device)  # insert to DB
-                existing_devices[mac] = id
-                print("device added")
+        if mac not in existing_devices.keys():
+            # check if ip not same...
+            id = await add_one_device(device)  # insert to DB
+            existing_devices[mac] = id
+            print("device added")
 
     return existing_devices
 
