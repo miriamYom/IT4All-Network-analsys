@@ -32,7 +32,7 @@ class Device(BaseModel):
     ip: str
     Mac: str
     Name: Union[str, None] = "Device"
-    Vendor: str
+    Vendor:Union[str, None]
     Info: Union[str, None] = None
 
 

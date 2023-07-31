@@ -1,7 +1,7 @@
 from typing import Union
 
 from DB.db_initializer import connect_db
-from models.entities import Network, Device, UserInDB,Connection
+from models.entities import Network, Device, UserInDB, Connection, LoginUser
 
 CONNECTION = None
 
@@ -27,12 +27,10 @@ async def is_exist_client(client_id):
             raise ClientNotFoundError("Client with the specified ID not found.")
 
 
-async def add_user(user: UserInDB):
+async def add_user(user: LoginUser):
     connection = await get_connection()
     with connection.cursor() as cursor:
-        query_to_check_id = "select id from Role where name = %s"
-
-        cursor.execute(query_to_check_id,())
+       
         query = "INSERT INTO User " \
                 "(FirstName,LastName, HashedPassword, RoleID, Email)" \
                 " VALUES" \
@@ -67,7 +65,7 @@ async def get_network(client_id):
 
 
 async def get_user(email):
-    connection =await get_connection()
+    connection = await get_connection()
     with connection.cursor() as cursor:
         query = "SELECT Password FROM User WHERE email = %s"
         cursor.execute(query, (email,))
