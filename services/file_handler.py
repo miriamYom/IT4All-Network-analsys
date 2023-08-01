@@ -1,11 +1,18 @@
+from smtplib import SMTP
+
 import httpx
 from mac_vendor_lookup import MacLookup
-from scapy.all import *
 from io import BytesIO
-from scapy.layers.inet import IP
+from scapy.contrib.bgp import BGP
+from scapy.layers.dns import DNS
+from scapy.layers.http import HTTP
+from scapy.layers.inet import IP, TCP, UDP, ICMP
+from scapy.layers.l2 import ARP
+from scapy.layers.snmp import SNMP
+from scapy.utils import rdpcap
 
 from DB.connection_crud import add_connections
-from DB.device_crud import add_one_device
+from DB.device_crud import add_one_device, update_router
 from models.entities import Device, Connection
 
 
@@ -31,50 +38,67 @@ async def get_vendor(mac_address):
             return None
 
 
-async def create_device(network_id, ip, mac):
-    # Create device and insert it into the DB.
-    vendor = await get_vendor(mac)
-    device_data = {
-        "NetworkID": network_id,
-        "IP": str(ip),
-        "Mac": mac,
-        "Name": "device",
-        "Vendor": str(vendor),
-        "Info": "---",
-    }
+async def get_protocol(packet):
+    protocol = 'Unknown'
 
-    device = Device(**device_data)
-    device_id = await add_one_device(device)  # Insert to the DB
-    return device_id
+    if packet.haslayer(TCP):
+        protocol = packet['TCP'].name
+    elif packet.haslayer(UDP):
+        protocol = packet['UDP'].name
+    elif packet.haslayer(ARP):
+        protocol = packet['ARP'].name
+    elif packet.haslayer(ICMP):
+        protocol = packet['ICMP'].name
+    elif packet.haslayer(DNS):
+        protocol = packet['DNS'].name
+    elif packet.haslayer(HTTP):
+        protocol = packet['HTTP'].name
+    elif packet.haslayer(SMTP):
+        protocol = packet['SMTP'].name
+    elif packet.haslayer(BGP):
+        protocol = packet['BGP'].name
+    elif packet.haslayer(SNMP):
+        protocol = packet['SNMP'].name
+
+    return protocol
+
+
+
+async def create_device(network_id, mac, ip, existing_devices):
+    if mac not in existing_devices:
+        vendor = await get_vendor(mac)
+        device_data = {
+            "NetworkID": network_id,
+            "IP": ip,
+            "Mac": mac,
+            "Name": "device",
+            "Vendor": str(vendor),
+            "Info": "---",
+        }
+        device = Device(**device_data)
+        device_id = await add_one_device(device)
+        existing_devices[mac] = ip
+    else:
+        if existing_devices[mac] != ip:
+            await update_router(mac)
+    return existing_devices
 
 
 async def devices_identification(packets, network_id):
     # a dictionary containing all detected devices.
     # Key: mac address, Value: ID in device table.
-    # TODO change to list
-    existing_devices = []
-    # TODO: add ip null for router
+    existing_devices = dict()
     for packet in packets:
-        # Extract the mac address first, if not, it's not a device.
-        src_mac = str(packet["Ether"].src)
-        dst_mac = str(packet["Ether"].dst)
-
-        # Check if the packet contains the IP layer
         if packet.haslayer(IP):
+            src_mac = str(packet["Ether"].src)
+            dst_mac = str(packet["Ether"].dst)
+            src_ip = packet[IP].src
+            dst_ip = packet[IP].dst
             # Process source MAC address.
-            # TODO:move to out function
-            if src_mac not in existing_devices:
-                device_id = await create_device(network_id, packet[IP].src, src_mac)
-                existing_devices.append(src_mac)
-            else:
-                pass
-            # Process destination MAC address.
-            if dst_mac not in existing_devices:
-                device_id = await create_device(network_id, packet[IP].dst, dst_mac)
-                existing_devices.append(dst_mac)
-            else:
-                # TODO: (NTH) Check if the IP address is different. If so, it is a router.
-                pass
+            existing_devices = await create_device(network_id, src_mac, src_ip, existing_devices)
+            # if it's not ARP broadcast
+            if dst_mac != 'ff:ff:ff:ff:ff:ff':
+                existing_devices = await create_device(network_id, dst_mac, dst_ip, existing_devices)
 
     return existing_devices
 
@@ -97,4 +121,3 @@ async def connections_identification(packets, devices):
         connections.add(connection)
 
     await add_connections(connections)
-
