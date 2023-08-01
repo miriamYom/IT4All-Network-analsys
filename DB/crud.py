@@ -5,34 +5,15 @@ from DB.db_initializer import connect_db, get_connection
 from models.entities import Network, Device, UserInDB, Connection
 
 
-class ClientNotFoundError(Exception):
-    pass
-
-
-async def is_exist_client(client_id):
-    connection = await get_connection()
-    with connection.cursor() as cursor:
-        query = "SELECT id FROM Client WHERE Id = %s"
-        cursor.execute(query, (client_id,))
-        result = cursor.fetchone()
-        if not result:
-            raise ClientNotFoundError("Client with the specified ID not found.")
 
 
 
 
 
-async def get_role_id(role_name: str):
-    connection = await get_connection()
-    async with connection.cursor() as cursor:
-        # Get the RoleID based on the role name
-        query_to_check_role_id = "SELECT ID FROM Role WHERE Name = %s"
-        await cursor.execute(query_to_check_role_id, (role_name,))
-        role_id = await cursor.fetchone()
-        # the default is technician
-        if not role_id:
-            role_id = 1
-    return role_id
+
+
+
+
 
 
 
@@ -41,6 +22,7 @@ async def get_role_id(role_name: str):
 # async def add_devices(lst_of_devices):
 #     connection = await get_connection()
 #     async with connection.cursor() as cursor:
+#         query = ""
 #         query = "CREATE TABLE #outputResult (ID int ,Mac varchar(100)) " \
 #                 "INSERT INTO Device(NetworkID,IP,Mac, Name,Vendor,Info)" \
 #                 "OUTPUT inserted.ID,inserted.Mac" \

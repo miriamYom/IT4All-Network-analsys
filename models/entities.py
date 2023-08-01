@@ -71,6 +71,11 @@ class UserInDB(User):
     HashedPassword: str
 
 
+class UserLogin(User):
+    RoleName: Union[str, None]
+    Password: Union[str, None]
+
+
 class Client(User):
     Address: Union[str, None]
     Phone: Union[str, None]

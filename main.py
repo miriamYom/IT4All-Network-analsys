@@ -1,16 +1,15 @@
-# This is a sample Python script.
+import requests
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+url = "http://127.0.0.1:8000/auth/sign_up"
 
+payload = {
+    "FirstName": "Chani",
+    "LastName": "Chalmish",
+    "RoleName": "technician",
+    "Email": "chani@example.com",
+    "Password": "secret"
+}
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+response = requests.post(url, json=payload)
+print(response.status_code)  # Should print the HTTP status code of the response
+print(response.text)  # Should print the response body as a dictionary (if it returns JSON data)

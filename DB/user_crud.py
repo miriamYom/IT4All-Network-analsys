@@ -1,11 +1,25 @@
-import asyncio
-
-from DB.crud import get_role_id
 from DB.db_initializer import get_connection
-from models.entities import UserInDB, Client
+from models.entities import UserInDB
 
 
-async def add_user(user: UserInDB):
+class UnAuthorizedError(Exception):
+    pass
+
+
+async def get_role_id(role_name: str):
+    connection = await get_connection()
+    async with connection.cursor() as cursor:
+        # Get the RoleID based on the role name
+        query_to_check_role_id = "SELECT ID FROM Role WHERE Name = %s"
+        await cursor.execute(query_to_check_role_id, (role_name,))
+        role_id = await cursor.fetchone()
+        # the default is technician
+        if not role_id:
+            role_id = 1
+    return role_id
+
+
+async def add_user_to_db(user: UserInDB):
     connection = await get_connection()
     async with connection.cursor() as cursor:
         role_id = await get_role_id(user.RoleName)
@@ -15,7 +29,7 @@ async def add_user(user: UserInDB):
         return cursor.lastrowid
 
 
-async def get_user(email):
+async def get_user_from_db(email):
     connection = await get_connection()
     async with connection.cursor() as cursor:
         query = "SELECT * FROM User WHERE email = %s"
@@ -30,18 +44,5 @@ async def technician_authorization(technician_id, client_id):
         query = "SELECT * FROM ClientForUser WHERE UserID = %s AND ClientID = %s"
         await cursor.execute(query, (technician_id, client_id))
         result = await cursor.fetchone()
-        if result:
-            return True
-        else:
-            return False
-
-
-async def add_client(client: Client):
-    connection = await get_connection()
-    async with connection.cursor() as cursor:
-        query = "INSERT INTO Client (FirstName, LastName, Email, Phone) VALUES (%s, %s, %s, %s)"
-        await cursor.execute(query, (client.FirstName, client.LastName, client.Email, client.Phone))
-        await connection.commit()
-        return cursor.lastrowid
-
-# hardcode for adding clients
+        if not result:
+            raise UnAuthorizedError("You Are not Allowed to access to this client")
