@@ -29,6 +29,10 @@ async def get_network(client_id):
         return networks
 
 
+class DeviceDoesntExistError(Exception):
+    pass
+
+
 async def get_networks_devices(network_id: Union[int, None], mac_address: Union[str, None], vendor: Union[str, None],
                                client_id: Union[int, None]):
     connection = await get_connection()
@@ -48,4 +52,6 @@ async def get_networks_devices(network_id: Union[int, None], mac_address: Union[
             params.append(vendor)
         await cursor.execute(query, params)
         devices = await cursor.fetchall()
+        if not devices:
+            raise DeviceDoesntExistError("There are no devices ")
     return devices
