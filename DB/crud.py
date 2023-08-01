@@ -1,3 +1,4 @@
+import asyncio
 from typing import Union
 
 from DB.db_initializer import connect_db
@@ -27,10 +28,12 @@ async def is_exist_client(client_id):
             raise ClientNotFoundError("Client with the specified ID not found.")
 
 
-async def add_user(user: LoginUser):
+async def add_user(user: UserInDB):
     connection = await get_connection()
     with connection.cursor() as cursor:
-       
+        query_to_check_id = "select id from Role where name = %s"
+
+        cursor.execute(query_to_check_id,())
         query = "INSERT INTO User " \
                 "(FirstName,LastName, HashedPassword, RoleID, Email)" \
                 " VALUES" \
@@ -73,13 +76,46 @@ async def get_user(email):
         return password
 
 
-async def add_devices(lst_of_devices):
+# async def add_devices(lst_of_devices):
+#     connection = await get_connection()
+#     async with connection.cursor() as cursor:
+#         query = "CREATE TABLE #outputResult (ID int ,Mac varchar(100)) " \
+#                 "INSERT INTO Device(NetworkID,IP,Mac, Name,Vendor,Info)" \
+#                 "OUTPUT inserted.ID,inserted.Mac" \
+#                 "INTO #outputResult" \
+#                 "SELECT dt.NetworkID,dt.IP,dt.Mac, dt.Name,dt.Vendor,dt.Info" \
+#                 "FROM Device_temp dt LEFT JOIN Device d" \
+#                 "on dt.mac=d.mac" \
+#                 "where d.id is null" \
+#                 "SELECT *FROM #outputResult"
+#         cursor.execute(query, lst_of_devices)
+#
+#         connection.commit()
+#         res = await cursor.fetchall()
+#         return res
+
+
+async def add_devices(lst_of_devices):  # doesnt work!!!
     connection = await get_connection()
-    with connection.cursor() as cursor:
-        query = "INSERT INTO Device(NetworkID,IP,Mac, Name,Vendor,Info) " \
-                "Values (%s,%s,%s,%s,%s) "
+    async with connection.cursor() as cursor:
+        query = (
+            '''
+            CREATE TABLE #outputResult (ID int ,Mac varchar(100))
+            INSERT INTO Device(NetworkID, IP, Mac, Name, Vendor, Info)
+            OUTPUT inserted.ID, inserted.Mac 
+            INTO #outputResult 
+            SELECT dt.NetworkID, dt.IP, dt.Mac, dt.Name, dt.Vendor, dt.Info 
+            FROM Device_temp dt LEFT JOIN Device d 
+            ON dt.mac = d.mac 
+            WHERE d.id IS NULL 
+            SELECT * FROM #outputResult
+            '''
+        )
         cursor.execute(query, lst_of_devices)
+
         connection.commit()
+        res = await cursor.fetchall()
+        return res
 
 
 async def get_networks_devices(network_id: int, mac_address: Union[str, None], vendor: Union[str, None]):
@@ -101,6 +137,43 @@ async def get_networks_devices(network_id: int, mac_address: Union[str, None], v
 async def add_connection(connection: Connection):
     connection_to_db = await get_connection()
     with connection_to_db.cursor() as cursor:
-        query = "insert into Connection (network_id,ip,mac,name,vendor) Values (%s,%s,%s,%s,%s)"
-        cursor.execute(query, ())
-        connection_to_db.commit()
+        query = "INSERT INTO Connection (SourceID, DestID, ProtocolID, Length, Time) " \
+                "Values (%s, %s, %s, %s, %s)"
+        cursor.execute(query, (
+            connection.Source_id,
+            connection.Dest_id,
+            connection.Protocol_id,
+            connection.Length,
+            connection.Time
+        ))
+        last_identity_id = cursor.lastrowid
+        await connection_to_db.commit()
+        return last_identity_id
+
+
+async def add_one_device(device: Device):
+    connection = await get_connection()
+    async with connection.cursor() as cursor:
+        query = "INSERT INTO Device (NetworkID, IP, Mac, Name, Vendor, Info) " \
+                "VALUES (%s, %s, %s, %s, %s, %s)"
+        await cursor.execute(query, (
+            device.network_id,
+            device.ip,
+            device.Mac,
+            device.Name,
+            device.Vendor,
+            device.Info
+        ))
+        last_identity_id = cursor.lastrowid
+        await connection.commit()
+        return last_identity_id
+
+
+# network_data = {
+#     "client_id": 11,
+#     "location_name": "Test Location",
+#     "date_taken": "25/07/2023",
+# }
+# network = Network(**network_data)
+
+# asyncio.run(add_network(network))

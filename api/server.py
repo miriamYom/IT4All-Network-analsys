@@ -8,12 +8,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
 from pydantic import Json
 
-from auth.auth_handler import create_access_token, authenticate_user, ACCESS_TOKEN_EXPIRE_MINUTES
+from auth.auth_handler import create_access_token, authenticate_user, ACCESS_TOKEN_EXPIRE_MINUTES, \
+    get_current_active_user
 from auth.auth_models import Token
-from models.entities import Network
+from models.entities import Network, User
 from DB.DB_manager import fake_db
 from DB.crud import add_network, ClientNotFoundError, get_networks_devices
-from services.file_handler import open_pcap_file
+from services.file_handler import open_pcap_file, analyze_pcap_file
 
 app = FastAPI()
 
@@ -24,7 +25,8 @@ async def root():
 
 
 @app.post("/upload_pcap_file")
-async def upload_pcap_file(pcap_file: UploadFile = File(...), network: Json = Body(...),current_user: User = Depends(get_current_active_user)):
+async def upload_pcap_file(pcap_file: UploadFile = File(...), network: Json = Body(...)):
+                           # ,current_user: User = Depends(get_current_active_user)):
     print(network)
     print(type(network))
 
@@ -32,12 +34,14 @@ async def upload_pcap_file(pcap_file: UploadFile = File(...), network: Json = Bo
     # TODO: add network to DB
     network_model = Network(**network)
     try:
-        id = add_network(network_model)
+        id = await add_network(network_model)  # doesnt work...
+        packets = await open_pcap_file(pcap_file)
+        await analyze_pcap_file(packets, id)
     except pymysql.Error as e:
         raise e
         # raise HTTPException(status_code=404,detail="bgbj")
     # TODO: read file
-    await open_pcap_file(pcap_file)
+
     # TODO: analyze file
 
     # TODO: return network id
