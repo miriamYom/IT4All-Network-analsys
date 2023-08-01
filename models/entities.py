@@ -27,27 +27,32 @@ class Network(BaseModel):
 
 
 class Device(BaseModel):
-    id: Union[int, None] = None
-    network_id: Union[int, None] = None
-    ip: str
+    NetworkID: int
+    IP: str
     Mac: str
     Name: Union[str, None] = "Device"
-    Vendor: str
+    Vendor: str = "vendor"
     Info: Union[str, None] = None
 
 
 class Connection(BaseModel):
-    Source_id: int
-    Dest_id: int
-    Protocol_id: int
+    SourceMac: str
+    DestMac: str
+    ProtocolName: str
     Length: int
     Time: str
 
+    def __hash__(self):
+        # Convert the Connection object to a tuple of its attributes
+        return hash((self.SourceMac, self.DestMac, self.ProtocolName, self.Length, self.Time))
+
 
 class User(BaseModel):
+    ID: int = None
     FirstName: Union[str, None]
-    LastName: Union[str, None]
+    LastName: Union[str, None] = None
     Email: str
+    RoleName: Union[str, None] = "technician"
 
     @field_validator('Email')
     def validate_email(cls, value):
@@ -62,9 +67,10 @@ class User(BaseModel):
         return bool(re.match(email_pattern, email))
 
 
-
-
 class UserInDB(User):
     HashedPassword: str
 
 
+class Client(User):
+    Address: Union[str, None]
+    Phone: Union[str, None]

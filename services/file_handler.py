@@ -3,7 +3,8 @@ from scapy.all import *
 from io import BytesIO
 from scapy.layers.inet import IP
 
-from DB.crud import add_devices, add_one_device, add_connection, add_connections
+from DB.connection_crud import add_connections
+from DB.device_crud import add_one_device
 from models.entities import Device, Connection
 
 
@@ -23,6 +24,21 @@ async def analyze_pcap_file(packets, network_id):
     await connections_identification(packets, existing_devices)
 
 
+async def create_device(network_id, ip, mac):
+    # Create device and insert it into the DB.
+    device_data = {
+        "NetworkID": network_id,
+        "IP": str(ip),
+        "Mac": mac,
+        "Name": "device",
+        # "Vendor": MacLookup().lookup(mac)
+        "Info": "---",
+    }
+
+    device = Device(**device_data)
+    device_id = await add_one_device(device)  # Insert to the DB
+    return device_id
+
 
 async def devices_identification(packets, network_id):
     # a dictionary containing all detected devices.
@@ -31,26 +47,25 @@ async def devices_identification(packets, network_id):
 
     for packet in packets:
         # Extract the mac address first, if not, it's not a device.
-        mac = str(packet["Ether"].src)
-        if mac not in existing_devices.keys():
-            # create device and insert him to DB and to existing_devices.
-            device_data = {
-                "network_id": network_id,
-                "Name": "device",
-                "Info": "---",
-                "ip": str(packet[IP].src),
-                "Mac": mac,
-                "Vendor": MacLookup().lookup(mac)
-            }
+        src_mac = str(packet["Ether"].src)
+        dst_mac = str(packet["Ether"].dst)
 
-            device = Device(**device_data)
-            id = await add_one_device(device)  # insert to DB
-            existing_devices[mac] = id
-            print("device added")
+        # Check if the packet contains the IP layer
+        if packet.haslayer(IP):
+            # Process source MAC address.
+            if src_mac not in existing_devices:
+                device_id = await create_device(network_id, packet[IP].src, src_mac)
+                existing_devices[src_mac] = device_id
+                print("Device added")
 
-        else:
-            # TODO: (NTH) Check if the IP address is different. If so, it is a router.
-            pass
+            # Process destination MAC address.
+            if dst_mac not in existing_devices:
+                device_id = await create_device(network_id, packet[IP].dst, dst_mac)
+                existing_devices[dst_mac] = device_id
+                print("Device added")
+            else:
+                # TODO: (NTH) Check if the IP address is different. If so, it is a router.
+                pass
 
     return existing_devices
 
@@ -62,9 +77,9 @@ async def connections_identification(packets, devices):
         src_mac = packet["Ether"].src
         dst_mac = packet["Ether"].dst
         connection_data = {
-            "Source_id": devices[src_mac],
-            "Dest_id": devices[dst_mac],
-            "Protocol_id": 1,  # TODO: change it to id of protocol
+            "SourceMac": src_mac,
+            "DestMac": dst_mac,
+            "ProtocolName": packet.getlayer(0).name,  # TODO: change it to id of protocol
             "Length": len(packet),
             "Time": str(packet.time),
         }
@@ -73,5 +88,3 @@ async def connections_identification(packets, devices):
         connections.add(connection)
 
     await add_connections(connections)
-
-
