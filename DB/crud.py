@@ -1,17 +1,8 @@
 import asyncio
 from typing import Union
 
-from DB.db_initializer import connect_db
-from models.entities import Network, Device, UserInDB, Connection, LoginUser
-
-CONNECTION = None
-
-
-async def get_connection():
-    global CONNECTION
-    if not CONNECTION:
-        CONNECTION = await connect_db()
-    return CONNECTION
+from DB.db_initializer import connect_db, get_connection
+from models.entities import Network, Device, UserInDB, Connection
 
 
 class ClientNotFoundError(Exception):
@@ -28,52 +19,23 @@ async def is_exist_client(client_id):
             raise ClientNotFoundError("Client with the specified ID not found.")
 
 
-# async def add_user(user: UserInDB):
-#     connection = await get_connection()
-#     with connection.cursor() as cursor:
-#         query_to_check_id = "select id from Role where name = %s"
-#
-#         cursor.execute(query_to_check_id, ())
-#         query = "INSERT INTO User " \
-#                 "(FirstName,LastName, HashedPassword, RoleID, Email)" \
-#                 " VALUES" \
-#                 "(%s, %s, %s, %s, %s)"
-#         cursor.execute(query, (user.first_name, user.last_name, user.hashed_password, role_id))
-#         result = cursor.fetchone()
 
 
-async def add_network(network: Network):
+
+async def get_role_id(role_name: str):
     connection = await get_connection()
     async with connection.cursor() as cursor:
-        query = "INSERT INTO Network (ClientId, LocationName, DateTaken) " \
-                "VALUES (%s, %s, %s)"
-        await cursor.execute(query, (
-            network.client_id,
-            network.location_name,
-            network.date_taken,
-        ))
-        last_identity_id = cursor.lastrowid
-        await connection.commit()
-
-    return last_identity_id
+        # Get the RoleID based on the role name
+        query_to_check_role_id = "SELECT ID FROM Role WHERE Name = %s"
+        await cursor.execute(query_to_check_role_id, (role_name,))
+        role_id = await cursor.fetchone()
+        # the default is technician
+        if not role_id:
+            role_id = 1
+    return role_id
 
 
-async def get_network(client_id):
-    connection = await get_connection()
-    with connection.cursor() as cursor:
-        query = "SELECT * FROM Network Where ClientId= %s"
-        cursor.execute(query, (client_id,))
-        networks = cursor.fetchall()
-        return networks
 
-
-async def get_user(email):
-    connection = await get_connection()
-    with connection.cursor() as cursor:
-        query = "SELECT Password FROM User WHERE email = %s"
-        cursor.execute(query, (email,))
-        password = cursor.fetchone()
-        return password
 
 
 # async def add_devices(lst_of_devices):
@@ -95,45 +57,6 @@ async def get_user(email):
 #         return res
 
 
-async def add_devices(lst_of_devices):  # doesnt work!!!
-    connection = await get_connection()
-    async with connection.cursor() as cursor:
-        query = (
-            '''
-            CREATE TABLE #outputResult (ID int ,Mac varchar(100))
-            INSERT INTO Device(NetworkID, IP, Mac, Name, Vendor, Info)
-            OUTPUT inserted.ID, inserted.Mac 
-            INTO #outputResult 
-            SELECT dt.NetworkID, dt.IP, dt.Mac, dt.Name, dt.Vendor, dt.Info 
-            FROM Device_temp dt LEFT JOIN Device d 
-            ON dt.mac = d.mac 
-            WHERE d.id IS NULL 
-            SELECT * FROM #outputResult
-            '''
-        )
-        cursor.execute(query)
-
-        connection.commit()
-        res = await cursor.fetchall()
-        return res
-
-
-async def get_networks_devices(network_id: int, mac_address: Union[str, None], vendor: Union[str, None]):
-    connection = await get_connection()
-    async with connection.cursor() as cursor:
-        query = "SELECT * FROM Device WHERE NetworkID = %s"
-        params = [network_id]
-        if mac_address:
-            query += " AND Mac = %s"
-            params.append(mac_address)
-        if vendor:
-            query += " AND Vendor = %s"
-            params.append(vendor)
-        await cursor.execute(query, params)
-        devices = await cursor.fetchall()
-    return devices
-
-
 async def add_connection(connection: Connection):
     connection_to_db = await get_connection()
     with connection_to_db.cursor() as cursor:
@@ -150,39 +73,11 @@ async def add_connection(connection: Connection):
         await connection_to_db.commit()
         return last_identity_id
 
+# network_data = {
+#     "client_id": 11,
+#     "location_name": "Test Location",
+#     "date_taken": "25/07/2023",
+# }
+# network = Network(**network_data)
 
-async def add_one_device(device: Device):
-    connection = await get_connection()
-    async with connection.cursor() as cursor:
-        query = "INSERT INTO Device (NetworkID, IP, Mac, Name, Vendor, Info) " \
-                "VALUES (%s, %s, %s, %s, %s, %s)"
-        await cursor.execute(query, (
-            device.network_id,
-            device.ip,
-            device.Mac,
-            device.Name,
-            device.Vendor,
-            device.Info
-        ))
-        last_identity_id = cursor.lastrowid
-        await connection.commit()
-        return last_identity_id
-
-
-async def add():
-    connection_data = {
-        "Source_id": 12,
-        "Dest_id": 13,
-        "Protocol_id": 2,
-        "Length": 1,
-        "Time": "25/07/2023",
-    }
-
-    # Create an instance of the Connection class with appropriate data
-    connection = Connection(**connection_data)
-
-    # Execute the add_connection function within the event loop
-    last_insert_id = await add_connection(connection)
-
-
-asyncio.run(add())
+# asyncio.run(add_network(network))

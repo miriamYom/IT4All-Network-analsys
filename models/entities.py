@@ -27,29 +27,34 @@ class Network(BaseModel):
 
 
 class Device(BaseModel):
-    id: Union[int, None] = None
-    network_id: Union[int, None] = None
-    ip: str
+    NetworkID: int
+    IP: str
     Mac: str
     Name: Union[str, None] = "Device"
-    Vendor:Union[str, None]
+    Vendor: str = "vendor"
     Info: Union[str, None] = None
 
 
 class Connection(BaseModel):
-    Source_id: int
-    Dest_id: int
-    Protocol_id: int
+    SourceMac: str
+    DestMac: str
+    ProtocolName: str
     Length: int
     Time: str
 
+    def __hash__(self):
+        # Convert the Connection object to a tuple of its attributes
+        return hash((self.SourceMac, self.DestMac, self.ProtocolName, self.Length, self.Time))
+
 
 class User(BaseModel):
-    first_name: Union[str, None]
-    last_name: Union[str, None]
-    email: str
+    ID: int = None
+    FirstName: Union[str, None]
+    LastName: Union[str, None] = None
+    Email: str
+    RoleName: Union[str, None] = "technician"
 
-    @field_validator('email')
+    @field_validator('Email')
     def validate_email(cls, value):
         if not cls.is_valid_email(value):
             raise ValueError("Invalid email address")
@@ -61,13 +66,11 @@ class User(BaseModel):
         email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         return bool(re.match(email_pattern, email))
 
-class LoginUser(User):
-    password: str
-    role_name: int
-
 
 class UserInDB(User):
-    hashed_password: str
-    role_id: Union[int, None] = None
+    HashedPassword: str
 
 
+class Client(User):
+    Address: Union[str, None]
+    Phone: Union[str, None]
