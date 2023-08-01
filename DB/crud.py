@@ -31,7 +31,7 @@ async def get_role_id(role_name: str):
         role_id = await cursor.fetchone()
         # the default is technician
         if not role_id:
-            role_id = 1
+            role_id = {'ID':1}
     return role_id
 
 

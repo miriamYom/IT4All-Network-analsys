@@ -13,9 +13,9 @@ async def get_connection():
 
 async def connect_db():
     db_server_name = "sql6.freesqldatabase.com"
-    db_user = "sql6635076"
-    db_password = "IVFgIa9ywj"
-    db_name = "sql6635076"
+    db_user = "sql6636745"
+    db_password = "UhpGRQK5m6"
+    db_name = "sql6636745"
     char_set = "utf8mb4"
     cursor_type = aiomysql.cursors.DictCursor
     connection_object = await aiomysql.connect(host=db_server_name, user=db_user, password=db_password,
