@@ -1,5 +1,4 @@
 import httpx
-from mac_vendor_lookup import MacLookup
 from scapy.all import *
 from io import BytesIO
 from scapy.layers.inet import IP

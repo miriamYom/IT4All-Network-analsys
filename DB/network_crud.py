@@ -56,10 +56,8 @@ async def get_network_details(network_id: int):
             SELECT c1.*
             FROM Connection c1
             JOIN Device dd1 ON c1.DestMac = dd1.Mac
-            WHERE dd1.NetworkID = 23
+            WHERE dd1.NetworkID = %s
         ) c ON d.Mac = c.SourceMac
-        WHERE d.NetworkID = %s;
-
         """
         await cursor.execute(query, (network_id,))
         networks_details = cursor.fetchall()
