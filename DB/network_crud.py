@@ -30,10 +30,20 @@ async def get_network(client_id):
         return networks
 
 
-async def get_networks_devices(network_id: int, mac_address: Union[str, None], vendor: Union[str, None]):
+class DeviceDoesntExistError(Exception):
+    pass
+
+
+async def get_networks_devices(network_id: Union[int, None], mac_address: Union[str, None], vendor: Union[str, None],
+                               client_id: Union[int, None]):
     connection = await get_connection()
     async with connection.cursor() as cursor:
-        query = "SELECT * FROM Device WHERE NetworkID = %s"
+        if client_id:
+            query = "SELECT * FROM Device " \
+                    "WHERE NetworkId IN " \
+                    "(SELECT id FROM Network WHERE ClientId = 1)"
+        else:
+            query = "SELECT * FROM Device WHERE NetworkID = %s"
         params = [network_id]
         if mac_address:
             query += " AND Mac = %s"
@@ -43,6 +53,8 @@ async def get_networks_devices(network_id: int, mac_address: Union[str, None], v
             params.append(vendor)
         await cursor.execute(query, params)
         devices = await cursor.fetchall()
+        if not devices:
+            raise DeviceDoesntExistError("There are no devices ")
     return devices
 
 

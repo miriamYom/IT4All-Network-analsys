@@ -42,9 +42,13 @@ class Connection(BaseModel):
     Length: int
     Time: str
 
+    def __eq__(self, other):
+        if not isinstance(other, Connection):
+            return False
+        return (self.SourceMac, self.DestMac) == (other.SourceMac, other.DestMac)
+
     def __hash__(self):
-        # Convert the Connection object to a tuple of its attributes
-        return hash((self.SourceMac, self.DestMac, self.ProtocolName, self.Length, self.Time))
+        return hash((self.SourceMac, self.DestMac))
 
 
 class User(BaseModel):
@@ -69,6 +73,11 @@ class User(BaseModel):
 
 class UserInDB(User):
     HashedPassword: str
+
+
+class UserLogin(User):
+    RoleName: Union[str, None]
+    Password: Union[str, None]
 
 
 class Client(User):

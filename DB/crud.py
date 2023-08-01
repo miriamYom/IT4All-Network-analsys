@@ -5,18 +5,9 @@ from DB.db_initializer import connect_db, get_connection
 from models.entities import Network, Device, UserInDB, Connection
 
 
-class ClientNotFoundError(Exception):
-    pass
 
 
-async def is_exist_client(client_id):
-    connection = await get_connection()
-    with connection.cursor() as cursor:
-        query = "SELECT id FROM Client WHERE Id = %s"
-        cursor.execute(query, (client_id,))
-        result = cursor.fetchone()
-        if not result:
-            raise ClientNotFoundError("Client with the specified ID not found.")
+
 
 
 
@@ -31,8 +22,9 @@ async def get_role_id(role_name: str):
         role_id = await cursor.fetchone()
         # the default is technician
         if not role_id:
-            role_id = 1
+            role_id = {'ID':1}
     return role_id
+
 
 
 

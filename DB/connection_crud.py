@@ -24,8 +24,29 @@ import aiomysql
 #         return False
 
 
+# async def add_connections(connections):
+#     if not connections:
+#         return False
+#
+#     query = """
+#     INSERT INTO Connection (SourceMac, DestMac, ProtocolName, Length, Time)
+#     VALUES (%s, %s, %s, %s, %s)
+#     """
+#     try:
+#         connection = await get_connection()
+#         async with connection.cursor() as cursor:
+#             connection_data_list = [(conn.SourceMac, conn.DestMac, conn.ProtocolName, conn.Length, conn.Time) for conn
+#                                     in connections]
+#             await cursor.executemany(query, connection_data_list)
+#             await connection.commit()
+#             print(f"{len(connections)} connections inserted successfully.")
+#             return True
+#     except Exception as e:
+#         print(f"Error: {e}")
+#         return False
+
+
 async def add_connections(connections):
-    # TODO:should add all packets
     if not connections:
         return False
 
@@ -36,15 +57,15 @@ async def add_connections(connections):
     try:
         connection = await get_connection()
         async with connection.cursor() as cursor:
-            first_connection = next(iter(connections))
-            await cursor.execute(
-                query,
-                (first_connection.SourceMac, first_connection.DestMac, first_connection.ProtocolName,
-                 first_connection.Length, first_connection.Time)
-            )
+            for conn in connections:
+                try:
+                    await cursor.execute(query, (conn.SourceMac, conn.DestMac, conn.ProtocolName, conn.Length, conn.Time))
+                except Exception as e:
+                    print(f"Error inserting connection: {conn.SourceMac} -> {conn.DestMac}. Error: {e}")
             await connection.commit()
-            print("First connection inserted successfully.")
-            return cursor.lastrowid
+            print(f"{len(connections)} connections inserted successfully.")
+            return True
     except Exception as e:
         print(f"Error: {e}")
         return False
+

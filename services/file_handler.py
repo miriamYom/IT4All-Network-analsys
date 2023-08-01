@@ -51,7 +51,7 @@ async def devices_identification(packets, network_id):
     # a dictionary containing all detected devices.
     # Key: mac address, Value: ID in device table.
     # TODO change to list
-    existing_devices = dict()
+    existing_devices = []
     # TODO: add ip null for router
     for packet in packets:
         # Extract the mac address first, if not, it's not a device.
@@ -64,12 +64,13 @@ async def devices_identification(packets, network_id):
             # TODO:move to out function
             if src_mac not in existing_devices:
                 device_id = await create_device(network_id, packet[IP].src, src_mac)
-                existing_devices[src_mac] = device_id
-
+                existing_devices.append(src_mac)
+            else:
+                pass
             # Process destination MAC address.
             if dst_mac not in existing_devices:
                 device_id = await create_device(network_id, packet[IP].dst, dst_mac)
-                existing_devices[dst_mac] = device_id
+                existing_devices.append(dst_mac)
             else:
                 # TODO: (NTH) Check if the IP address is different. If so, it is a router.
                 pass

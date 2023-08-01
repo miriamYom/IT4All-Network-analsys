@@ -1,5 +1,10 @@
 .idea
 Design.docx
+DB/__pycache__/
+api/__pycache__/
+models/__pycache__/
+services/__pycache__/
+auth/__pycache__/
 DB/__pycache__
 api/__pycache__
 models/__pycache__

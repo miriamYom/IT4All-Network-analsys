@@ -10,9 +10,10 @@ from fastapi.security.utils import get_authorization_scheme_param
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
-from DB.user_crud import get_user
+from DB.user_crud import get_user_from_db, technician_authorization
 from auth.auth_models import TokenData
-from models.entities import UserInDB, User
+from models.entities import UserInDB, User, UserLogin
+from DB.user_crud import add_user_to_db
 
 SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
 ALGORITHM = "HS256"
@@ -58,7 +59,7 @@ def get_password_hash(password):
 
 
 async def authenticate_user(email: str, password: str):
-    user: UserInDB = await get_user(email)
+    user: UserInDB = await get_user_from_db(email)
     if not user:
         return None
     if not verify_password(password, user.HashedPassword):
@@ -91,17 +92,18 @@ async def get_current_user(token: str = Depends(oauth2_cookie_scheme)):
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    user = await get_user(email=token_data.username)
+    user = await get_user_from_db(email=token_data.username)
     if user is None:
         raise credentials_exception
     return user
 
 
-# async def get_current_active_user(current_user: User = Depends(get_current_user)):
-#     # if current_user and current_user.disabled:
-#     #     raise HTTPException(status_code=400, detail="Inactive user")
-#     return current_user
-
-
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
+
+
+async def add_user(user:UserLogin):
+    hashed_password = get_password_hash(user.Password)
+    user_in_db = UserInDB(FirstName=user.FirstName, LastName=user.LastName, Email=user.Email, RoleName=user.RoleName,
+                          HashedPassword=hashed_password)
+    return await add_user_to_db(user_in_db)
