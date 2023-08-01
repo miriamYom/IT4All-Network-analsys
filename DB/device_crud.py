@@ -38,12 +38,13 @@ async def add_one_device(device: Device):
             device.Vendor,
             device.Info
         ))
-        last_identity_id = cursor.lastrowid
+        # last_identity_id = cursor.lastrowid
         await connection.commit()
-        return last_identity_id
+        return "added device"
 
 
 async def update_router(mac):
+    print("updating")
     # Assuming you have a function named 'get_connection' that returns an asynchronous connection object
     connection = await get_connection()
 

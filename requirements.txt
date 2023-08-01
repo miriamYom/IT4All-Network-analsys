@@ -7,3 +7,5 @@ aiomysql~=0.2.0
 mac-vendor-lookup
 pip install networkx
 pip install matplotlib
+httpx~=0.24.1
+scapy~=2.5.0

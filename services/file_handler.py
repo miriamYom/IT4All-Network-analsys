@@ -11,7 +11,7 @@ from scapy.layers.l2 import ARP
 from scapy.layers.snmp import SNMP
 from scapy.utils import rdpcap
 
-from DB.connection_crud import add_connections
+from DB.connection_crud import add_connections, get_protocol_id
 from DB.device_crud import add_one_device, update_router
 from models.entities import Device, Connection
 
@@ -24,7 +24,7 @@ async def open_pcap_file(pcap_file):
 
 async def analyze_pcap_file(packets, network_id):
     existing_devices = await devices_identification(packets, network_id)
-    await connections_identification(packets, existing_devices)
+    await connections_identification(packets)
 
 
 async def get_vendor(mac_address):
@@ -63,31 +63,28 @@ async def get_protocol(packet):
     return protocol
 
 
+async def create_device(network_id, mac, ip):
+    print(f"in create_device mac:{mac}")
+    vendor = await get_vendor(mac)
+    device_data = {
+        "NetworkID": network_id,
+        "IP": ip,
+        "Mac": mac,
+        "Name": "device",
+        "Vendor": str(vendor),
+        "Info": "---",
+    }
+    device = Device(**device_data)
+    await add_one_device(device)
 
-async def create_device(network_id, mac, ip, existing_devices):
-    if mac not in existing_devices:
-        vendor = await get_vendor(mac)
-        device_data = {
-            "NetworkID": network_id,
-            "IP": ip,
-            "Mac": mac,
-            "Name": "device",
-            "Vendor": str(vendor),
-            "Info": "---",
-        }
-        device = Device(**device_data)
-        device_id = await add_one_device(device)
-        existing_devices[mac] = ip
-    else:
-        if existing_devices[mac] != ip:
-            await update_router(mac)
-    return existing_devices
+    return True
 
 
 async def devices_identification(packets, network_id):
     # a dictionary containing all detected devices.
-    # Key: mac address, Value: ID in device table.
+    # Key: mac address, Value: IP in device table.
     existing_devices = dict()
+    router_found=False
     for packet in packets:
         if packet.haslayer(IP):
             src_mac = str(packet["Ether"].src)
@@ -95,24 +92,42 @@ async def devices_identification(packets, network_id):
             src_ip = packet[IP].src
             dst_ip = packet[IP].dst
             # Process source MAC address.
-            existing_devices = await create_device(network_id, src_mac, src_ip, existing_devices)
-            # if it's not ARP broadcast
-            if dst_mac != 'ff:ff:ff:ff:ff:ff':
-                existing_devices = await create_device(network_id, dst_mac, dst_ip, existing_devices)
+            if src_mac not in existing_devices:
+                await create_device(network_id, src_mac, src_ip)
+                existing_devices[src_mac] = src_ip
+            else:
+                if not router_found and existing_devices[src_mac] != src_ip:
+                    await update_router(src_mac)
+                    router_found = True
 
+            # if it's not ARP broadcast
+            if dst_mac not in existing_devices:
+                if dst_mac != 'ff:ff:ff:ff:ff:ff':
+                    await create_device(network_id, dst_mac, dst_ip)
+                    existing_devices[dst_mac] = dst_ip
+            else:
+                if not router_found and existing_devices[dst_mac] != dst_ip :
+                    await update_router(dst_mac)
+                    router_found=True
     return existing_devices
 
 
-async def connections_identification(packets, devices):
+async def connections_identification(packets):
     connections = set()
-    # TODO: unique by mac adresses
+    protocols = dict()
     for packet in packets:
+        protocol = await get_protocol(packet)
+        if protocol in protocols:
+            protocol_id = protocols[protocol]
+        else:
+            protocol_id = await get_protocol_id(protocol)
+            protocols[protocol] = protocol_id
         src_mac = packet["Ether"].src
         dst_mac = packet["Ether"].dst
         connection_data = {
             "SourceMac": src_mac,
             "DestMac": dst_mac,
-            "ProtocolName": packet.getlayer(0).name,  # TODO: change it to id of protocol
+            "ProtocolID": protocol_id['ID'],
             "Length": len(packet),
             "Time": str(packet.time),
         }

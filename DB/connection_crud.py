@@ -51,7 +51,7 @@ async def add_connections(connections):
         return False
 
     query = """
-    INSERT INTO Connection (SourceMac, DestMac, ProtocolName, Length, Time)
+    INSERT INTO Connection (SourceMac, DestMac, ProtocolID, Length, Time)
     VALUES (%s, %s, %s, %s, %s)
     """
     try:
@@ -59,7 +59,8 @@ async def add_connections(connections):
         async with connection.cursor() as cursor:
             for conn in connections:
                 try:
-                    await cursor.execute(query, (conn.SourceMac, conn.DestMac, conn.ProtocolName, conn.Length, conn.Time))
+                    await cursor.execute(query,
+                                         (conn.SourceMac, conn.DestMac, conn.ProtocolID, conn.Length, conn.Time))
                 except Exception as e:
                     print(f"Error inserting connection: {conn.SourceMac} -> {conn.DestMac}. Error: {e}")
             await connection.commit()
@@ -68,4 +69,16 @@ async def add_connections(connections):
     except Exception as e:
         print(f"Error: {e}")
         return False
+
+
+async def get_protocol_id(protocol: str):
+    connection = await get_connection()
+    async with connection.cursor() as cursor:
+        # Get the ProtocolID based on the protocol name
+        query_to_check_role_id = "SELECT ID FROM Protocol WHERE Name = %s"
+        print(f"Executing query: {query_to_check_role_id} with parameter: {protocol}")
+        await cursor.execute(query_to_check_role_id, (protocol,))
+        protocol_id = await cursor.fetchone()
+        print(f"Result: {protocol_id}")
+        return protocol_id
 
