@@ -25,6 +25,7 @@ import aiomysql
 
 
 async def add_connections(connections):
+    # TODO:should add all packets
     if not connections:
         return False
 

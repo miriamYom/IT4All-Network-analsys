@@ -26,6 +26,7 @@ async def analyze_pcap_file(packets, network_id):
 
 async def create_device(network_id, ip, mac):
     # Create device and insert it into the DB.
+    # TODO:find vendor
     device_data = {
         "NetworkID": network_id,
         "IP": str(ip),
@@ -43,8 +44,9 @@ async def create_device(network_id, ip, mac):
 async def devices_identification(packets, network_id):
     # a dictionary containing all detected devices.
     # Key: mac address, Value: ID in device table.
+    # TODO change to list
     existing_devices = dict()
-
+    # TODO: add ip null for router
     for packet in packets:
         # Extract the mac address first, if not, it's not a device.
         src_mac = str(packet["Ether"].src)
@@ -53,16 +55,15 @@ async def devices_identification(packets, network_id):
         # Check if the packet contains the IP layer
         if packet.haslayer(IP):
             # Process source MAC address.
+            # TODO:move to out function
             if src_mac not in existing_devices:
                 device_id = await create_device(network_id, packet[IP].src, src_mac)
                 existing_devices[src_mac] = device_id
-                print("Device added")
 
             # Process destination MAC address.
             if dst_mac not in existing_devices:
                 device_id = await create_device(network_id, packet[IP].dst, dst_mac)
                 existing_devices[dst_mac] = device_id
-                print("Device added")
             else:
                 # TODO: (NTH) Check if the IP address is different. If so, it is a router.
                 pass
@@ -72,7 +73,7 @@ async def devices_identification(packets, network_id):
 
 async def connections_identification(packets, devices):
     connections = set()
-
+    # TODO: unique by mac adresses
     for packet in packets:
         src_mac = packet["Ether"].src
         dst_mac = packet["Ether"].dst

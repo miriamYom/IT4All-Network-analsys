@@ -37,11 +37,7 @@ async def upload_pcap_file(pcap_file: UploadFile = File(...), network: Json = Bo
     except Exception as e:
         raise e
         # raise HTTPException(status_code=404,detail="bgbj")
-    # TODO: read file
 
-    # TODO: analyze file
-
-    # TODO: return network id
     return f"network created with id:{network_id}"
 
 
@@ -73,7 +69,7 @@ async def sign_up(pcap_file: UploadFile = None, user: Json = Body(...), password
     try:
         user_id = await add_user(user_in_db)
     except Exception as e:
-        # TODO: error loging
+        # TODO: error logging
         raise HTTPException(status_code=500, detail="Internal server error")
     return f"user added with id:{user_id}"
 
@@ -88,6 +84,7 @@ async def login_for_access_token(response: Response, form_data: OAuth2PasswordRe
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    # TODO: add username in data
     access_token = create_access_token(
         data={"email": user.Email}, expires_delta=access_token_expires
     )
