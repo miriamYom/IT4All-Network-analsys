@@ -9,7 +9,7 @@ from DB.user_crud import technician_authorization, UnAuthorizedError
 from auth_api import router as auto_api_router
 from pydantic import Json
 
-from DB.network_crud import add_network, get_networks_devices,DeviceDoesntExistError
+from DB.network_crud import add_network, get_networks_devices,DeviceDoesntExistError,get_network_details
 
 from auth.auth_handler import create_access_token, authenticate_user, ACCESS_TOKEN_EXPIRE_MINUTES, get_current_user, \
     get_password_hash
@@ -50,13 +50,16 @@ async def view_network(network_id: int, current_user: User = Depends(get_current
     try:
         client_id = await is_exist_client_by_network(network_id)
         await technician_authorization(current_user.ID, client_id)
-    # TODO: get devices and connections
+        network_details = await get_network_details(network_id)
+        return network_details
     except ClientNotFoundError as e:
         raise HTTPException(status_code=404, detail=e)
     except UnAuthorizedError as e:
         raise HTTPException(status_code=403, detail=e)
     except Exception as e:
         raise HTTPException(status_code=500, detail=e)
+
+
 
 
 @app.get("/devices/{network_id}")

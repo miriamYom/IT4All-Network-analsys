@@ -7,3 +7,5 @@ aiomysql~=0.2.0
 mac-vendor-lookup
 scapy~=2.5.0
 requests~=2.31.0
+networkx
+matplotlib
