@@ -1,3 +1,4 @@
+import httpx
 from mac_vendor_lookup import MacLookup
 from scapy.all import *
 from io import BytesIO
@@ -14,25 +15,31 @@ async def open_pcap_file(pcap_file):
     return packets
 
 
-# def filter_packet(packet):
-#     network_range = '192.168.1'
-#     return IP in packet and (packet[IP].src.startswith(network_range) or packet[IP].dst.startswith(network_range))
-
-
 async def analyze_pcap_file(packets, network_id):
     existing_devices = await devices_identification(packets, network_id)
     await connections_identification(packets, existing_devices)
 
 
+async def get_vendor(mac_address):
+    url = f"https://api.macvendors.com/{mac_address}"
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(url)
+            response.raise_for_status()
+            return response.text
+        except httpx.HTTPError:
+            return None
+
+
 async def create_device(network_id, ip, mac):
     # Create device and insert it into the DB.
-    # TODO:find vendor
+    vendor = await get_vendor(mac)
     device_data = {
         "NetworkID": network_id,
         "IP": str(ip),
         "Mac": mac,
         "Name": "device",
-        # "Vendor": MacLookup().lookup(mac)
+        "Vendor": str(vendor),
         "Info": "---",
     }
 
@@ -90,3 +97,4 @@ async def connections_identification(packets, devices):
         connections.add(connection)
 
     await add_connections(connections)
+

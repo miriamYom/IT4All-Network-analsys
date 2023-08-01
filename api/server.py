@@ -5,7 +5,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
 from pydantic import Json
 
-from DB.network_crud import add_network, get_networks_devices
+from DB.network_crud import add_network, get_networks_devices, get_network_details
 from DB.user_crud import add_user, technician_authorization
 from auth.auth_handler import create_access_token, authenticate_user, ACCESS_TOKEN_EXPIRE_MINUTES, get_current_user, \
     get_password_hash
@@ -42,10 +42,12 @@ async def upload_pcap_file(pcap_file: UploadFile = File(...), network: Json = Bo
 
 
 @app.get("/view_network/{network_id}")
-async def view_network(network_id: int, current_user: User = Depends(get_current_user)):
+async def view_network(network_id: int):
+    # , current_user: User = Depends(get_current_user)
     # TODO: users authorization
-    # TODO: get devices and connections
-    pass
+
+    network_details = await get_network_details(network_id)
+    return (network_details)
 
 
 @app.get("/devices/{network_id}")

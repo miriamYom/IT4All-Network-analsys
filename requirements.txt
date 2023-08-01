@@ -5,3 +5,5 @@ pydantic~=2.0.3
 passlib~=1.7.4
 aiomysql~=0.2.0
 mac-vendor-lookup
+pip install networkx
+pip install matplotlib
