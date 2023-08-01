@@ -28,18 +28,18 @@ async def is_exist_client(client_id):
             raise ClientNotFoundError("Client with the specified ID not found.")
 
 
-async def add_user(user: UserInDB):
-    connection = await get_connection()
-    with connection.cursor() as cursor:
-        query_to_check_id = "select id from Role where name = %s"
-
-        cursor.execute(query_to_check_id,())
-        query = "INSERT INTO User " \
-                "(FirstName,LastName, HashedPassword, RoleID, Email)" \
-                " VALUES" \
-                "(%s, %s, %s, %s, %s)"
-        cursor.execute(query, (user.first_name, user.last_name, user.hashed_password, role_id))
-        result = cursor.fetchone()
+# async def add_user(user: UserInDB):
+#     connection = await get_connection()
+#     with connection.cursor() as cursor:
+#         query_to_check_id = "select id from Role where name = %s"
+#
+#         cursor.execute(query_to_check_id, ())
+#         query = "INSERT INTO User " \
+#                 "(FirstName,LastName, HashedPassword, RoleID, Email)" \
+#                 " VALUES" \
+#                 "(%s, %s, %s, %s, %s)"
+#         cursor.execute(query, (user.first_name, user.last_name, user.hashed_password, role_id))
+#         result = cursor.fetchone()
 
 
 async def add_network(network: Network):
@@ -111,7 +111,7 @@ async def add_devices(lst_of_devices):  # doesnt work!!!
             SELECT * FROM #outputResult
             '''
         )
-        cursor.execute(query, lst_of_devices)
+        cursor.execute(query)
 
         connection.commit()
         res = await cursor.fetchall()
@@ -169,11 +169,20 @@ async def add_one_device(device: Device):
         return last_identity_id
 
 
-# network_data = {
-#     "client_id": 11,
-#     "location_name": "Test Location",
-#     "date_taken": "25/07/2023",
-# }
-# network = Network(**network_data)
+async def add():
+    connection_data = {
+        "Source_id": 12,
+        "Dest_id": 13,
+        "Protocol_id": 2,
+        "Length": 1,
+        "Time": "25/07/2023",
+    }
 
-# asyncio.run(add_network(network))
+    # Create an instance of the Connection class with appropriate data
+    connection = Connection(**connection_data)
+
+    # Execute the add_connection function within the event loop
+    last_insert_id = await add_connection(connection)
+
+
+asyncio.run(add())
