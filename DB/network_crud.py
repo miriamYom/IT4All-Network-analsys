@@ -1,9 +1,8 @@
-import asyncio
 from typing import Union
 
 from DB.db_initializer import get_connection
 from models.entities import Network
-from services.network_visualization import drew
+from services.network_visualization import draw
 
 
 async def add_network(network: Network):
@@ -73,18 +72,6 @@ async def get_network_details(network_id: int):
         ) c ON d.Mac = c.SourceMac
         """
         await cursor.execute(query, (network_id,))
-        networks_details = cursor.fetchall()
-        res = networks_details.result()
-        drew(res)
-        print(res)
-        return res
-
-
-# async def main():
-#     network_id = 23
-#     await get_network_details(network_id)
-#
-# # Create the event loop explicitly and run the coroutine function
-# loop = asyncio.get_event_loop()
-# loop.run_until_complete(main())
+        networks_details = cursor.fetchall().result()
+        return draw(networks_details)
 

@@ -1,8 +1,7 @@
-import pymysql
+import logging
+
 import uvicorn
 from fastapi import FastAPI, Response, Depends, File, UploadFile, Form, Body, HTTPException, status, encoders, Request
-from fastapi.security import OAuth2PasswordRequestForm
-from datetime import timedelta
 from fastapi.responses import JSONResponse
 from DB.client_crud import ClientNotFoundError, is_exist_client_by_id, is_exist_client_by_network
 from DB.user_crud import technician_authorization, UnAuthorizedError
@@ -45,14 +44,16 @@ async def upload_pcap_file(pcap_file: UploadFile = File(...), network: Json = Bo
     except Exception as e:
         raise HTTPException(status_code=403,detail=e)
 
-    return JSONResponse(f"network created with id:{network_id}")
+    return f"network created with id:{network_id}"
 
 
 @app.get("/view_network/{network_id}")
-async def view_network(network_id: int, current_user: User = Depends(get_current_user)):
+async def view_network(network_id: int):
+    # , current_user: User = Depends(get_current_user)
     try:
-        client_id = await is_exist_client_by_network(network_id)
-        await technician_authorization(current_user.ID, client_id)
+        # client_id = await is_exist_client_by_network(network_id)
+        # logging.info(f"client_id: {client_id}")
+        # await technician_authorization(current_user.ID, client_id)
         network_details = await get_network_details(network_id)
         return network_details
     except ClientNotFoundError as e:
