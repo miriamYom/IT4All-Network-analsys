@@ -4,6 +4,7 @@ from typing import Union
 
 from DB.db_initializer import get_connection
 from models.entities import Network
+from services.network_visualization import drew
 
 logger = logging.getLogger(__name__)
 
@@ -42,13 +43,14 @@ async def get_networks_devices(network_id: Union[int, None], mac_address: Union[
                                client_id: Union[int, None]):
     connection = await get_connection()
     async with connection.cursor() as cursor:
+        params = list()
         if client_id:
             query = "SELECT * FROM Device " \
                     "WHERE NetworkId IN " \
                     "(SELECT id FROM Network WHERE ClientId = 1)"
         else:
             query = "SELECT * FROM Device WHERE NetworkID = %s"
-        params = [network_id]
+        params.append(network_id)
         if mac_address:
             query += " AND Mac = %s"
             params.append(mac_address)
@@ -77,8 +79,10 @@ async def get_network_details(network_id: int):
         """
         await cursor.execute(query, (network_id,))
         networks_details = cursor.fetchall()
-        print("hfvkgiubughigi", networks_details)
-        return networks_details
+        res = networks_details.result()
+        drew(res)
+        print(res)
+        return res
 
 # async def main():
 #     network_id = 23
@@ -87,3 +91,4 @@ async def get_network_details(network_id: int):
 # # Create the event loop explicitly and run the coroutine function
 # loop = asyncio.get_event_loop()
 # loop.run_until_complete(main())
+

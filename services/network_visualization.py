@@ -1,5 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+import json
 
 # Sample query result (replace this with your actual query result)
 query_result = [
@@ -13,39 +14,39 @@ query_result = [
     (8, 'AA:BB:CC:DD:EE:08', 'AA:BB:CC:DD:EE:09', 'TCP', 150, '2023-08-01 12:35:00'),
     (9, 'AA:BB:CC:DD:EE:09', 'AA:BB:CC:DD:EE:10', 'UDP', 50, '2023-08-01 12:40:00'),
 ]
+def drew(connection_data):
+    # Create a graph
+    G = nx.Graph()
 
-# Create a graph
-G = nx.Graph()
+    # Add nodes for each device
+    for connection in connection_data:
+        G.add_node(connection["Mac"], IP=connection["IP"], ID=connection["ID"], Vendor=connection["Vendor"])
 
-# Add nodes for each device and connections
-for row in query_result:
-    device_id, source_mac, dest_mac, protocol, length, time = row
+    # Add edges for each connection between devices
+    for connection in connection_data:
+        G.add_edge(connection["SourceMac"], connection["DestMac"], Protocol=connection["ProtocolName"],
+                   Length=connection["Length"])
 
-    # Add device node with a 'type' attribute set to 'device'
-    G.add_node(source_mac, type='device', device_id=device_id)
+    # Plot the graph
+    plt.figure(figsize=(12, 8))
+    pos = nx.spring_layout(G, seed=42)
 
-    # Add connection edge with attributes for protocol, length, and time
-    G.add_edge(source_mac, dest_mac, protocol=protocol, length=length, time=time)
+    # Draw devices
+    nx.draw_networkx_nodes(G, pos, node_size=2000, node_color="skyblue")
+    nx.draw_networkx_labels(G, pos, font_size=8)
 
-# Plot the graph
-plt.figure(figsize=(12, 8))
-pos = nx.spring_layout(G, seed=42)  # Positions nodes using a spring layout algorithm
+    # Draw connections
+    nx.draw_networkx_edges(G, pos, edge_color="gray", width=1)
 
-# Separate devices and connections for different visualization styles
-device_nodes = [node for node, attr in G.nodes(data=True) if 'type' in attr and attr['type'] == 'device']
-connection_edges = [(source, dest) for source, dest, attr in G.edges(data=True)]
+    # Draw edge labels
+    edge_labels = nx.get_edge_attributes(G, "Protocol")
+    nx.draw_networkx_edge_labels(G, pos, edge_labels, font_size=8)
 
-# Draw devices
-nx.draw_networkx_nodes(G, pos, nodelist=device_nodes, node_size=2000, node_color='skyblue')
-nx.draw_networkx_labels(G, pos, labels={node: node for node in device_nodes}, font_size=8)
+    plt.title("Connections between Devices")
+    plt.axis("off")
+    plt.show()
 
-# Draw connections
-nx.draw_networkx_edges(G, pos, edgelist=connection_edges, edge_color='gray', width=1)
-
-# Draw edge labels (protocol)
-edge_labels = {(source, dest): attr['protocol'] for source, dest, attr in G.edges(data=True)}
-nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=8)
-
-plt.title("Connections between Devices")
-plt.axis('off')
-plt.show()
+    # Assuming you have G defined
+    graph_data = nx.node_link_data(G)
+    json_graph_data = json.dumps(graph_data)
+    print(json_graph_data)  # Return this JSON data as part of your API response
