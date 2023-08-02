@@ -1,3 +1,5 @@
+import logging
+
 from DB.db_initializer import get_connection
 from models.entities import Device
 
@@ -44,11 +46,11 @@ async def add_one_device(device: Device):
 
 
 async def update_router(mac):
-    print("updating")
     # Assuming you have a function named 'get_connection' that returns an asynchronous connection object
     connection = await get_connection()
 
     async with connection.cursor() as cursor:
         query = "UPDATE Device SET IP = %s, Name = %s WHERE Mac = %s"
-        await cursor.execute(query, (None,"Router",mac))
+        await cursor.execute(query, (None, "Router", mac))
         await connection.commit()
+        logging.info("router found")

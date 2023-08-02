@@ -12,6 +12,9 @@ from models.entities import Device, Connection
 
 import logging
 
+# Set the root logger level to "INFO"
+logging.basicConfig(level=logging.INFO)
+
 
 async def analyze_pcap_file(packets, network_id):
     try:
@@ -101,9 +104,10 @@ async def devices_identification(packets, network_id):
                     await create_device(network_id, src_mac, src_ip)
                     existing_devices[src_mac] = src_ip
                 else:
-                    if not router_found and existing_devices[src_mac] != src_ip:
-                        await update_router(src_mac)
-                        router_found = True
+                    if existing_devices[src_mac] != src_ip:
+                        if not router_found:
+                            await update_router(src_mac)
+                            router_found = True
 
                 # If it's not ARP broadcast
                 if dst_mac not in existing_devices:
@@ -111,9 +115,10 @@ async def devices_identification(packets, network_id):
                         await create_device(network_id, dst_mac, dst_ip)
                         existing_devices[dst_mac] = dst_ip
                 else:
-                    if not router_found and existing_devices[dst_mac] != dst_ip:
-                        await update_router(dst_mac)
-                        router_found = True
+                    if existing_devices[dst_mac] != dst_ip:
+                        if not router_found:
+                            await update_router(dst_mac)
+                            router_found = True
 
         return existing_devices
     except Exception as e:
@@ -137,6 +142,8 @@ async def connections_identification(packets):
 
             src_mac = packet["Ether"].src
             dst_mac = packet["Ether"].dst
+            # TODO: handle brodcast ARP ff:ff:ff:ff:ff:ff packets
+
             # connection_key = (src_mac, dst_mac)
             connection_data = {
                 "SourceMac": src_mac,
@@ -149,12 +156,9 @@ async def connections_identification(packets):
             connection = Connection(**connection_data)
             if connection in connections:
                 connections[connection].add(protocol_id['ID'])
-                # connection = connections[connection_key]
-                # connection.add(protocol_id['ID'])
+
             else:
                 connections[connection] = set([protocol_id['ID']])
-                # connection = set([protocol_id['ID']])
-                # connections[connection_key] = connection
 
         await add_connections(connections)
     except Exception as e:

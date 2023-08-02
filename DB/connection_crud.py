@@ -78,10 +78,9 @@ async def get_protocol_id(protocol: str):
     async with connection.cursor() as cursor:
         # Get the ProtocolID based on the protocol name
         query_to_check_role_id = "SELECT ID FROM Protocol WHERE Name = %s"
-        print(f"Executing query: {query_to_check_role_id} with parameter: {protocol}")
+        logging.info(f"Executing query: {query_to_check_role_id} with parameter: {protocol}")
         await cursor.execute(query_to_check_role_id, (protocol,))
         protocol_id = await cursor.fetchone()
-        print(f"Result: {protocol_id}")
         return protocol_id
 
 
@@ -110,7 +109,7 @@ async def add_connections(connections_dict):
                         await cursor.execute(query_connection_protocol, (connection_id, protocol_id))
                 except Exception as e:
                     # If there's an error, log it and continue to the next connection
-                    logging.error(f"Error inserting connection: {e}")
+                    logging.error(f"Error inserting connection src mac: {connection_obj.SourceMac}, dst mac:{connection_obj.DestMac}")
                     continue
             await connection.commit()
             logging.info(f"{len(connections_dict)} connections inserted successfully.")
