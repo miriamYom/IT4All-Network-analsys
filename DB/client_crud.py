@@ -8,10 +8,10 @@ class ClientNotFoundError(Exception):
 
 async def is_exist_client_by_network(network_id):
     connection = await get_connection()
-    with connection.cursor() as cursor:
+    async with connection.cursor() as cursor:
         query = "SELECT id FROM Client WHERE NetworkId = %s"
-        cursor.execute(query, (network_id,))
-        client_id = cursor.fetchone()
+        await cursor.execute(query, (network_id,))
+        client_id = await cursor.fetchone()
         if not client_id:
             raise ClientNotFoundError("Client with the specified ID not found.")
         return client_id
@@ -19,10 +19,10 @@ async def is_exist_client_by_network(network_id):
 
 async def is_exist_client_by_id(client_id):
     connection = await get_connection()
-    with connection.cursor() as cursor:
+    async with connection.cursor() as cursor:
         query = "SELECT id FROM Client WHERE Id = %s"
-        cursor.execute(query, (client_id,))
-        client_id = cursor.fetchone()
+        await cursor.execute(query, (client_id,))
+        client_id = await cursor.fetchone()
         if not client_id:
             raise ClientNotFoundError("Client with the specified ID not found.")
 
