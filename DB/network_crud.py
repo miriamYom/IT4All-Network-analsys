@@ -43,7 +43,7 @@ async def get_networks_devices(network_id: Union[int, None], mac_address: Union[
         if client_id:
             query = "SELECT * FROM Device " \
                     "WHERE NetworkId IN " \
-                    "(SELECT id FROM Network WHERE ClientId = 1)"
+                    "(SELECT id FROM Network WHERE ClientId = %s)"
         else:
             query = "SELECT * FROM Device WHERE NetworkID = %s"
         params.append(network_id)
@@ -64,14 +64,17 @@ async def get_network_details(network_id: int):
     connection = await get_connection()
     async with connection.cursor() as cursor:
         query = """
-        SELECT d.*, c.*
-        FROM Device d
-        JOIN (
-            SELECT c1.*
-            FROM Connection c1
-            JOIN Device dd1 ON c1.DestMac = dd1.Mac
-            WHERE dd1.NetworkID = %s
-        ) c ON d.Mac = c.SourceMac
+                 SELECT d.IP as srcIP,d.Name as srcType,d.Vendor as srcVendor ,dd.IP as destIp,dd.Name as destType,
+                 dd.Vendor as destVendor,c.*,p.name as protocolVersion
+        FROM Device d JOIN Connection c
+            on d.Mac=c.SourceMac
+        JOIN Device dd
+            on c.DestMac=dd.Mac
+        JOIN ConnectionProtocol cd
+            on c.ID=cd.ConnectionID
+        JOIN Protocol p
+            on cd.ProtocolID=p.ID
+        where d.NetworkID=%s
         """
         await cursor.execute(query, (network_id,))
         networks_details = cursor.fetchall()

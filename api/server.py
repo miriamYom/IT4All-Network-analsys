@@ -1,3 +1,5 @@
+from typing import Union
+
 import pymysql
 import uvicorn
 from fastapi import FastAPI, Response, Depends, File, UploadFile, Form, Body, HTTPException, status, encoders, Request
@@ -66,12 +68,13 @@ async def view_network(network_id: int, current_user: User = Depends(get_current
 async def get_filtered_devices(network_id: int = None, mac_address: str = None, vendor: str = None,
                                client_id: int = None, current_user: User = Depends(get_current_user)):
     try:
+        client_id_for_query: Union[int, None] = client_id
         if client_id:
             await is_exist_client_by_id(client_id)
         else:
             client_id = await is_exist_client_by_network(network_id)
         await technician_authorization(current_user.ID, client_id)
-        devices = await get_networks_devices(network_id, mac_address, vendor, client_id)
+        devices = await get_networks_devices(network_id, mac_address, vendor, client_id_for_query)
         if not devices:
             raise HTTPException(status_code=404, detail="network not found")
         return devices
