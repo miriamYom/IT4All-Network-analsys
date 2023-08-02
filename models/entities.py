@@ -38,7 +38,6 @@ class Device(BaseModel):
 class Connection(BaseModel):
     SourceMac: str
     DestMac: str
-    ProtocolName: str
     Length: int
     Time: str
 
