@@ -81,8 +81,8 @@ async def get_network_details(network_id: int):
         """
         await cursor.execute(query, (network_id,))
         networks_details = cursor.fetchall()
-        res = networks_details.result()
-        vizu=draw(res)
+        res = networks_details.result()  # TODO: vizu... can't be here
+        vizu = draw(res)
         return vizu
         # print(res)
         # return res

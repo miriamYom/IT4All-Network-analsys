@@ -27,6 +27,14 @@ def draw(lst_connections: List):
         G.nodes[source_mac]['color'] = "red" if src_type=="Router" else "blue"# Set color attribute
         edge_labels[(source_mac, destination_mac)] = "protocol"
 
+        G.nodes[source_mac]['label'] = source_mac
+        G.nodes[destination_mac]['label'] = destination_mac
+        key = (source_mac, destination_mac)
+        if key in edge_labels:
+            edge_labels[key].add(connection["Name"])
+        else:
+            edge_labels[key] = {connection["Name"]}
+
     # Draw nodes with labels
     node_labels = nx.get_node_attributes(G, 'label')
     node_colors = [G.nodes[node]['color'] if 'color' in G.nodes[node] else 'skyblue' for node in G.nodes()]
@@ -36,11 +44,9 @@ def draw(lst_connections: List):
     nx.draw_networkx_edges(G, pos, width=2.0, alpha=0.7)
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, label_pos=0.5, font_size=8)
     plt.axis('off')
-
     # Save the plot to a BytesIO buffer
     buffer = io.BytesIO()
     plt.savefig(buffer, format='png')
     buffer.seek(0)
     plt.clf()  # Clear the plot
     return buffer
-
