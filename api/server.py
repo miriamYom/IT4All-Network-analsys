@@ -11,7 +11,8 @@ from auth.auth_handler import create_access_token, authenticate_user, ACCESS_TOK
     get_password_hash
 from auth.auth_models import Token
 from models.entities import Network, User, UserInDB
-from services.file_handler import open_pcap_file, analyze_pcap_file
+from services.file_handler import open_pcap_file
+from services.packet_analyzer import analyze_pcap_file
 
 app = FastAPI()
 
