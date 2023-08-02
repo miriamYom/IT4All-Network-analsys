@@ -1,3 +1,5 @@
+import logging
+
 from DB.db_initializer import get_connection
 from models.entities import Client
 
@@ -24,6 +26,7 @@ async def is_exist_client_by_id(client_id):
         await cursor.execute(query, (client_id,))
         client_id = await cursor.fetchone()
         if not client_id:
+            logging.error("Client with the specified ID not found.")
             raise ClientNotFoundError("Client with the specified ID not found.")
 
 

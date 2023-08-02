@@ -1,3 +1,5 @@
+import logging
+
 from DB.db_initializer import get_connection
 from models.entities import UserInDB
 
@@ -39,10 +41,12 @@ async def get_user_from_db(email):
 
 
 async def technician_authorization(technician_id, client_id):
+    logging.info("authorize technician")
     connection = await get_connection()
     async with connection.cursor() as cursor:
         query = "SELECT * FROM ClientForUser WHERE UserID = %s AND ClientID = %s"
         await cursor.execute(query, (technician_id, client_id,))
         result = await cursor.fetchone()
         if not result:
+            logging.error("You Are not Allowed to access to this client")
             raise UnAuthorizedError("You Are not Allowed to access to this client")

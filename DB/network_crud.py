@@ -1,9 +1,12 @@
 import asyncio
+import logging
 from typing import Union
 
 from DB.db_initializer import get_connection
 from models.entities import Network
-from services.network_visualization import drew
+from services.network_visualization import draw
+
+logger = logging.getLogger(__name__)
 
 
 async def add_network(network: Network):
@@ -18,6 +21,7 @@ async def add_network(network: Network):
         ))
         await connection.commit()
         last_identity_id = cursor.lastrowid
+        logger.info(f"network {last_identity_id} added")
 
     return last_identity_id
 
@@ -64,8 +68,7 @@ async def get_network_details(network_id: int):
     connection = await get_connection()
     async with connection.cursor() as cursor:
         query = """
-                 SELECT d.IP as srcIP,d.Name as srcType,d.Vendor as srcVendor ,dd.IP as destIp,dd.Name as destType,
-                 dd.Vendor as destVendor,c.*,p.name as protocolVersion
+        SELECT d.IP as srcIP,d.Name as srcType,d.Vendor as srcVendor ,dd.IP as destIp,dd.Name as dstType,dd.Vendor as destVendor,c.*,p.*
         FROM Device d JOIN Connection c
             on d.Mac=c.SourceMac
         JOIN Device dd
@@ -78,15 +81,8 @@ async def get_network_details(network_id: int):
         """
         await cursor.execute(query, (network_id,))
         networks_details = cursor.fetchall()
-        res = networks_details.result()
-        drew(res)
-        print(res)
-        return res
+        res = networks_details.result()  # TODO: vizu... can't be here
+        vizu = draw(res)
+        return vizu
 
-# async def main():
-#     network_id = 23
-#     await get_network_details(network_id)
-#
-# # Create the event loop explicitly and run the coroutine function
-# loop = asyncio.get_event_loop()
-# loop.run_until_complete(main())
+

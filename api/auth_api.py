@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import Response, Depends, Body, HTTPException, status, encoders, APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
@@ -8,6 +10,7 @@ from auth.auth_models import Token
 from models.entities import UserInDB, UserLogin
 
 router = APIRouter()
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
 @router.post("/sign_up")
@@ -15,13 +18,14 @@ async def sign_up(user: UserLogin = Body(...)):
     try:
         user_id = await add_user(user)
     except Exception as e:
-        # TODO: error logging
+        logging.error(f"error while sighn up {e}")
         raise HTTPException(status_code=500, detail=e)
     return f"user added with id:{user_id}"
 
 
 @router.post("/login", response_model=Token)
 async def login_for_access_token(response: Response, form_data: OAuth2PasswordRequestForm = Depends()):
+    logging.info(f"{form_data.username} is logging in")
     user = await authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(

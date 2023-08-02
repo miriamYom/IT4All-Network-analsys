@@ -1,10 +1,10 @@
+import base64
+import logging
 from typing import Union
 
-import pymysql
 import uvicorn
-from fastapi import FastAPI, Response, Depends, File, UploadFile, Form, Body, HTTPException, status, encoders, Request
-from fastapi.security import OAuth2PasswordRequestForm
-from datetime import timedelta
+from fastapi import FastAPI, Depends, File, UploadFile, Body, HTTPException, Response
+
 from fastapi.responses import JSONResponse
 from DB.client_crud import ClientNotFoundError, is_exist_client_by_id, is_exist_client_by_network
 from DB.user_crud import technician_authorization, UnAuthorizedError
@@ -13,10 +13,9 @@ from pydantic import Json
 
 from DB.network_crud import add_network, get_networks_devices, DeviceDoesntExistError, get_network_details
 
-from auth.auth_handler import create_access_token, authenticate_user, ACCESS_TOKEN_EXPIRE_MINUTES, get_current_user, \
-    get_password_hash
-from auth.auth_models import Token
-from models.entities import Network, User, UserInDB
+from auth.auth_handler import get_current_user
+
+from models.entities import Network, User
 from services.file_handler import open_pcap_file
 from services.packet_analyzer import analyze_pcap_file
 
@@ -33,6 +32,7 @@ async def root(current_user: User = Depends(get_current_user)):
 @app.post("/upload_pcap_file")
 async def upload_pcap_file(pcap_file: UploadFile = File(...), network: Json = Body(...),
                            current_user: User = Depends(get_current_user)):
+    logging.info("uploading pcap file")
     try:
         network_model = Network(**network)
         await is_exist_client_by_id(network_model.client_id)
@@ -55,7 +55,18 @@ async def view_network(network_id: int, current_user: User = Depends(get_current
         client_id = await is_exist_client_by_network(network_id)
         await technician_authorization(current_user.ID, client_id)
         network_details = await get_network_details(network_id)
-        return network_details
+
+        # Generate the image
+        image_buffer = await get_network_details(network_id)
+
+        return Response(content=image_buffer.getvalue(), media_type="image/png")
+        # Convert the image buffer to Base64
+        # image_base64 = base64.b64encode(image_buffer.getvalue()).decode("utf-8")
+
+        # Return the network details and the Base64-encoded image
+        # response_data = {"network_details": network_details, "graph_image_base64": image_base64}
+        # return JSONResponse(content=response_data)
+
     except ClientNotFoundError as e:
         raise HTTPException(status_code=404, detail=e)
     except UnAuthorizedError as e:
