@@ -44,7 +44,7 @@ async def get_networks_devices(network_id: Union[int, None], mac_address: Union[
         if client_id:
             query = "SELECT * FROM Device " \
                     "WHERE NetworkId IN " \
-                    "(SELECT id FROM Network WHERE ClientId = 1)"
+                    "(SELECT id FROM Network WHERE ClientId = %s)"
         else:
             query = "SELECT * FROM Device WHERE NetworkID = %s"
         params.append(network_id)
@@ -80,5 +80,6 @@ async def get_network_details(network_id: int):
         networks_details = cursor.fetchall()
         res = networks_details.result()  # TODO: vizu... can't be here
         return res
+
 
 
