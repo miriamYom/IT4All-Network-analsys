@@ -1,5 +1,4 @@
 import logging
-
 from DB.db_initializer import get_connection
 
 

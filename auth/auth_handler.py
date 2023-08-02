@@ -1,15 +1,11 @@
 from datetime import datetime, timedelta
 from typing import Union, Optional, Dict
-
-from fastapi import Depends, FastAPI, HTTPException, status, Request, Response, encoders
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, \
-    OAuth2
+from fastapi import Depends,HTTPException, status, Request
+from fastapi.security import OAuth2PasswordBearer,OAuth2
 from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel
-
 from fastapi.security.utils import get_authorization_scheme_param
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-
 from DB.user_crud import get_user_from_db, technician_authorization
 from auth.auth_models import TokenData
 from models.entities import UserInDB, User, UserLogin

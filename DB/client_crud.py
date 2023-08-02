@@ -38,4 +38,3 @@ async def add_client(client: Client):
         await connection.commit()
         return cursor.lastrowid
 
-# hardcode for adding clients

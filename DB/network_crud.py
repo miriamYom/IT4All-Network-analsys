@@ -1,11 +1,8 @@
-import asyncio
 import logging
 from typing import Union
-
 from DB.db_initializer import get_connection
 from models.entities import Network
 from services.network_visualization import draw
-
 logger = logging.getLogger(__name__)
 
 
@@ -82,16 +79,6 @@ async def get_network_details(network_id: int):
         await cursor.execute(query, (network_id,))
         networks_details = cursor.fetchall()
         res = networks_details.result()  # TODO: vizu... can't be here
-        vizu = draw(res)
-        return vizu
-        # print(res)
-        # return res
+        return res
 
-# async def main():
-#     network_id = 23
-#     await get_network_details(network_id)
-#
-# # Create the event loop explicitly and run the coroutine function
-# loop = asyncio.get_event_loop()
-# loop.run_until_complete(main())
 

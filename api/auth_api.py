@@ -3,12 +3,10 @@ import logging
 from fastapi import Response, Depends, Body, HTTPException, status, encoders, APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
-from pydantic import Json
 from auth.auth_handler import create_access_token, authenticate_user, ACCESS_TOKEN_EXPIRE_MINUTES, \
     add_user
 from auth.auth_models import Token
-from models.entities import UserInDB, UserLogin
-
+from models.entities import UserLogin
 router = APIRouter()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
@@ -18,7 +16,7 @@ async def sign_up(user: UserLogin = Body(...)):
     try:
         user_id = await add_user(user)
     except Exception as e:
-        logging.error(f"error while sighn up {e}")
+        logging.error(f"error while sign up {e}")
         raise HTTPException(status_code=500, detail=e)
     return f"user added with id:{user_id}"
 
