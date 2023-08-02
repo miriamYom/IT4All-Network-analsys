@@ -1,8 +1,11 @@
 import asyncio
+import logging
 from typing import Union
 
 from DB.db_initializer import get_connection
 from models.entities import Network
+
+logger = logging.getLogger(__name__)
 
 
 async def add_network(network: Network):
@@ -17,6 +20,7 @@ async def add_network(network: Network):
         ))
         await connection.commit()
         last_identity_id = cursor.lastrowid
+        logger.info(f"network {last_identity_id} added")
 
     return last_identity_id
 
@@ -76,7 +80,6 @@ async def get_network_details(network_id: int):
         print("hfvkgiubughigi", networks_details)
         return networks_details
 
-
 # async def main():
 #     network_id = 23
 #     await get_network_details(network_id)
@@ -84,4 +87,3 @@ async def get_network_details(network_id: int):
 # # Create the event loop explicitly and run the coroutine function
 # loop = asyncio.get_event_loop()
 # loop.run_until_complete(main())
-

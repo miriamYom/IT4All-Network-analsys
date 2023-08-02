@@ -1,8 +1,8 @@
-import pymysql
+import logging
+
 import uvicorn
-from fastapi import FastAPI, Response, Depends, File, UploadFile, Form, Body, HTTPException, status, encoders, Request
-from fastapi.security import OAuth2PasswordRequestForm
-from datetime import timedelta
+from fastapi import FastAPI,Depends, File, UploadFile,Body, HTTPException
+
 from fastapi.responses import JSONResponse
 from DB.client_crud import ClientNotFoundError, is_exist_client_by_id, is_exist_client_by_network
 from DB.user_crud import technician_authorization, UnAuthorizedError
@@ -11,15 +11,13 @@ from pydantic import Json
 
 from DB.network_crud import add_network, get_networks_devices,DeviceDoesntExistError,get_network_details
 
-from auth.auth_handler import create_access_token, authenticate_user, ACCESS_TOKEN_EXPIRE_MINUTES, get_current_user, \
-    get_password_hash
-from auth.auth_models import Token
-from models.entities import Network, User, UserInDB
+from auth.auth_handler import get_current_user
+
+from models.entities import Network, User
 from services.file_handler import open_pcap_file
 from services.packet_analyzer import analyze_pcap_file
 
 app = FastAPI()
-
 
 @app.get("/")
 async def root(current_user: User = Depends(get_current_user)):
@@ -31,6 +29,7 @@ async def root(current_user: User = Depends(get_current_user)):
 @app.post("/upload_pcap_file")
 async def upload_pcap_file(pcap_file: UploadFile = File(...), network: Json = Body(...),
                            current_user: User = Depends(get_current_user)):
+    logging.info("uploading pcap file")
     try:
         network_model = Network(**network)
         await is_exist_client_by_id(network_model.client_id)
