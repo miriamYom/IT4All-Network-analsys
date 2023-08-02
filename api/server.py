@@ -22,7 +22,9 @@ app = FastAPI()
 
 
 @app.get("/")
-async def root():
+async def root(current_user: User = Depends(get_current_user)):
+    await is_exist_client_by_id(1)
+    await technician_authorization(current_user.ID, 1)
     return "welcome to IT4all😀"
 
 
@@ -41,7 +43,7 @@ async def upload_pcap_file(pcap_file: UploadFile = File(...), network: Json = Bo
     except UnAuthorizedError as e:
         raise HTTPException(status_code=403, detail=e)
     except Exception as e:
-        raise  HTTPException(detail=e)
+        raise HTTPException(status_code=403,detail=e)
 
     return JSONResponse(f"network created with id:{network_id}")
 
@@ -63,7 +65,7 @@ async def view_network(network_id: int, current_user: User = Depends(get_current
 
 
 
-@app.get("/devices/{network_id}")
+@app.get("/devices")
 async def get_filtered_devices(network_id: int = None, mac_address: str = None, vendor: str = None,
                                client_id: int = None, current_user: User = Depends(get_current_user)):
     try:
