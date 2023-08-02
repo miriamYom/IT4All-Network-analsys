@@ -43,11 +43,11 @@ async def upload_pcap_file(pcap_file: UploadFile = File(...), network: Json = Bo
         await analyze_pcap_file(packets, network_id)
         return f"network created with id:{network_id}"
     except ClientNotFoundError as e:
-        raise HTTPException(status_code=404, detail=e)
+        raise HTTPException(status_code=404, detail="client not fount")
     except UnAuthorizedError as e:
-        raise HTTPException(status_code=403, detail=e)
+        raise HTTPException(status_code=403, detail="not authorized")
     except Exception as e:
-        raise HTTPException(status_code=403, detail=e)
+        raise HTTPException(status_code=500, detail="internal exception")
 
 
 @app.get("/view_network/{network_id}")
@@ -62,12 +62,18 @@ async def view_network(network_id: int, current_user: User = Depends(get_current
         image_buffer = draw(network_details)
         return Response(content=image_buffer.getvalue(), media_type="image/png")
 
+
     except ClientNotFoundError as e:
-        raise HTTPException(status_code=404, detail=e)
+
+        raise HTTPException(status_code=404, detail="client not fount")
+
     except UnAuthorizedError as e:
-        raise HTTPException(status_code=403, detail=e)
+
+        raise HTTPException(status_code=403, detail="not authorized")
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=e)
+
+        raise HTTPException(status_code=500, detail="internal exception")
 
 
 @app.get("/devices")
@@ -85,13 +91,13 @@ async def get_filtered_devices(network_id: int = None, mac_address: str = None, 
             raise HTTPException(status_code=404, detail="network not found")
         return devices
     except ClientNotFoundError as e:
-        raise HTTPException(status_code=404, detail=e)
+        raise HTTPException(status_code=404, detail="client not fount")
     except UnAuthorizedError as e:
-        raise HTTPException(status_code=403, detail=e)
+        raise HTTPException(status_code=403, detail="not authorized")
     except DeviceDoesntExistError as e:
-        raise HTTPException(status_code=404, detail=e)
+        raise HTTPException(status_code=404, detail="device not found")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=e)
+        raise HTTPException(status_code=500, detail="internal exception")
 
 
 app.include_router(auto_api_router, prefix="/auth", tags=["auth"])
