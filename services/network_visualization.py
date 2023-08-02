@@ -7,6 +7,7 @@ from typing import List
 def draw(lst_connections: List):
     G = nx.DiGraph()
     edge_labels = {}
+
     for connection in lst_connections:
         is_router = connection["Name"] == "Router"
         source_mac = connection["SourceMac"]
@@ -14,7 +15,12 @@ def draw(lst_connections: List):
         G.add_edge(source_mac, destination_mac)
         G.nodes[source_mac]['label'] = source_mac
         G.nodes[destination_mac]['label'] = destination_mac
-        edge_labels[(source_mac, destination_mac)] = "protocol"
+        key = (source_mac, destination_mac)
+        if key in edge_labels:
+            edge_labels[key].add(connection["Name"])
+        else:
+            edge_labels[key] = {connection["Name"]}
+
     # Draw nodes with labels
     node_labels = nx.get_node_attributes(G, 'label')
     pos = nx.circular_layout(G)

@@ -67,29 +67,20 @@ async def get_networks_devices(network_id: Union[int, None], mac_address: Union[
 async def get_network_details(network_id: int):
     connection = await get_connection()
     async with connection.cursor() as cursor:
-        query = """
-        SELECT d.*, c.*
-        FROM Device d
-        JOIN (
-            SELECT c1.*
-            FROM Connection c1
-            JOIN Device dd1 ON c1.DestMac = dd1.Mac
-            WHERE dd1.NetworkID = %s
-        ) c ON d.Mac = c.SourceMac
-        """
+        query = '''
+        SELECT d.IP as srcIP,d.Name as srcType,d.Vendor as srcVendor ,dd.IP as destIp,dd.Name as desType,dd.Vendor as destVendor,c.*, p.*
+        FROM Device d JOIN Connection c
+            on d.Mac=c.SourceMac
+        JOIN Device dd
+            on c.DestMac=dd.Mac
+        JOIN ConnectionProtocol cd
+            on c.ID=cd.ConnectionID
+        JOIN Protocol p
+            on cd.ProtocolID=p.ID
+        where d.NetworkID=%s
+        '''
         await cursor.execute(query, (network_id,))
         networks_details = cursor.fetchall()
-        res = networks_details.result()
-        vizu=draw(res)
+        res = networks_details.result()  # TODO: vizu... can't be here
+        vizu = draw(res)
         return vizu
-        # print(res)
-        # return res
-
-# async def main():
-#     network_id = 23
-#     await get_network_details(network_id)
-#
-# # Create the event loop explicitly and run the coroutine function
-# loop = asyncio.get_event_loop()
-# loop.run_until_complete(main())
-
