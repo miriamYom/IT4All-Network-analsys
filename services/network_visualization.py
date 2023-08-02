@@ -25,10 +25,8 @@ def draw(lst_connections: List):
         G.nodes[destination_mac]['label'] = destination_mac, dst_type
         G.nodes[destination_mac]['color'] = "red" if dst_type=="Router" else "blue"
         G.nodes[source_mac]['color'] = "red" if src_type=="Router" else "blue"# Set color attribute
-        edge_labels[(source_mac, destination_mac)] = "protocol"
+        # edge_labels[(source_mac, destination_mac)] = "protocol"
 
-        G.nodes[source_mac]['label'] = source_mac
-        G.nodes[destination_mac]['label'] = destination_mac
         key = (source_mac, destination_mac)
         if key in edge_labels:
             edge_labels[key].add(connection["Name"])

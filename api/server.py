@@ -51,7 +51,7 @@ async def view_network(network_id: int, current_user: User = Depends(get_current
 
         # Generate the image
         network_details = await get_network_details(network_id)
-        image_buffer = await draw(network_details)
+        image_buffer = draw(network_details)
         return Response(content=image_buffer.getvalue(), media_type="image/png")
 
     except ClientNotFoundError as e:
