@@ -20,12 +20,12 @@ The project has the following features:
 # Getting Started
 To get started with the project, you will need to have Python, and React installed. You can then clone the repository and install the dependencies using the following commands:
 
-## pip install -r requirements.txt
+#### pip install -r requirements.txt
 
-## npm install
+#### npm install
 
 Once you have installed the dependencies, you can start the application by running the following command:
 
-## uvicorn main:app --reload
+#### uvicorn main:app --reload
 
 This will start the application on port 8080. You can then open the application in a web browser by visiting http://localhost:8080.
