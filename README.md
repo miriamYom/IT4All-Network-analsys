@@ -28,4 +28,4 @@ Once you have installed the dependencies, you can start the application by runni
 
 #### uvicorn main:app --reload
 
-This will start the application on port 8080. You can then open the application in a web browser by visiting http://localhost:8080.
+This will start the application on port 8000. You can then open the application in a web browser by visiting http://localhost:8000.
